@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#16311F">
+<title>Zeiterfassung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F7E9; --surface:#FFFFFF; --surface-alt:#EAF0DC;
+    --green-900:#16311F; --green-700:#285C3B; --green-500:#3E8358;
+    --yellow-500:#F4C41A; --yellow-700:#B98F0E;
+    --text:#16241B; --text-muted:#57685C; --danger:#A8442C;
+    --border:rgba(22,49,31,0.12); --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{ max-width:480px; margin:0 auto; min-height:100vh; padding:20px 20px 48px; display:flex; flex-direction:column; }
+
+  header{ display:flex; justify-content:space-between; align-items:center; padding:4px 0 14px; position:relative; }
+  header h1{ margin:0; font-size:15px; font-weight:600; letter-spacing:0.01em; color:var(--text-muted); }
+  .header-actions{ display:flex; align-items:center; gap:2px; }
+  .icon-btn{
+    background:none; border:none; padding:8px; margin:-8px; border-radius:10px; cursor:pointer;
+    color:var(--green-900); display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{ background:var(--surface-alt); }
+  .icon-btn svg{ width:22px; height:22px; display:block; }
+  .file-menu-wrap{ position:relative; }
+  .file-menu{
+    position:absolute; top:100%; right:-8px; margin-top:6px; background:var(--surface);
+    border:1px solid var(--border); border-radius:10px; box-shadow:0 6px 18px rgba(22,49,31,0.18);
+    min-width:150px; overflow:hidden; z-index:6; display:none;
+  }
+  .file-menu.open{ display:block; }
+  .file-menu button{
+    display:block; width:100%; text-align:left; background:none; border:none; padding:12px 14px;
+    font-family:inherit; font-size:13.5px; color:var(--text); cursor:pointer;
+  }
+  .file-menu button:active{ background:var(--surface-alt); }
+  .file-menu button + button{ border-top:1px solid var(--border); }
+  #importStatus{ margin:0 4px 12px; text-align:center; }
+
+  .storage-note{
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:12px;
+    padding:11px 13px; margin-bottom:16px; font-size:12.5px; line-height:1.5; color:var(--green-700);
+  }
+
+  .tracker{ background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:28px 20px 22px; text-align:center; }
+  .timer{
+    font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700;
+    font-size:clamp(44px, 13vw, 60px); font-variant-numeric:tabular-nums;
+    letter-spacing:0.01em; color:var(--green-900); line-height:1.1;
+  }
+  .timer.active{ color:var(--yellow-700); }
+  .timer.paused{ color:var(--text-muted); }
+  @media (prefers-reduced-motion: no-preference){ .timer.active{ animation:pulse 2.2s ease-in-out infinite; } }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.82; } }
+  .status{ margin-top:6px; font-size:14px; color:var(--text-muted); }
+
+  .toggle-btn{
+    margin-top:22px; width:100%; border:none; border-radius:12px; padding:18px;
+    font-family:inherit; font-size:17px; font-weight:600; cursor:pointer;
+    background:var(--green-900); color:var(--yellow-500);
+    transition:transform 0.08s ease, opacity 0.15s ease;
+  }
+  .toggle-btn:active{ transform:scale(0.98); }
+  .toggle-btn.running{ background:var(--yellow-500); color:var(--green-900); }
+  .toggle-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:3px; }
+
+  .pause-btn{
+    margin-top:10px; width:100%; border:1px solid var(--green-700); background:transparent;
+    color:var(--green-900); font-family:inherit; font-size:14px; font-weight:600;
+    padding:12px; border-radius:12px; cursor:pointer; display:none;
+  }
+  .pause-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
+
+  .activity-section{ margin-top:20px; text-align:left; }
+  .activity-label{ font-size:12px; color:var(--text-muted); margin:0 2px 8px; }
+  .activity-edit-toggle{
+    display:block; margin:10px 0 0; background:none; border:none; font-family:inherit; font-size:12.5px;
+    color:var(--text-muted); text-decoration:underline; cursor:pointer; padding:4px 2px;
+  }
+  .activity-edit-toggle.active{ color:var(--danger); font-weight:600; }
+  .activity-edit-hint{ font-size:11.5px; line-height:1.45; color:var(--text-muted); margin:6px 2px 0; }
+  .activity-chip.removable{ background:var(--surface); border-color:var(--danger); color:var(--danger); }
+  .activity-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+  .activity-chip{
+    border:1px solid var(--border); background:var(--surface-alt); color:var(--text);
+    font-family:inherit; font-size:13px; font-weight:500; padding:9px 14px;
+    border-radius:999px; cursor:pointer;
+    transition:background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .activity-chip.selected{ background:var(--yellow-500); border-color:var(--yellow-500); color:var(--green-900); font-weight:600; }
+  .activity-chip.new-chip{ background:transparent; border-style:dashed; color:var(--text-muted); }
+  .activity-chip:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
+
+  .add-activity-row{ display:flex; gap:8px; margin-top:8px; }
+  .add-activity-row input{
+    flex:1; min-width:0; border:1px solid var(--border); border-radius:10px; padding:9px 12px;
+    font-family:inherit; font-size:13px; background:var(--surface); color:var(--text);
+  }
+  .add-activity-row input:focus{ outline:none; border-color:var(--green-700); }
+  .add-activity-row button{ border:none; border-radius:10px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .add-activity-row .confirm{ background:var(--green-900); color:var(--yellow-500); }
+  .add-activity-row .cancel{ background:var(--surface-alt); color:var(--text-muted); }
+
+  .today-row{ display:flex; justify-content:space-between; align-items:baseline; margin:22px 4px 10px; font-size:14px; }
+  .today-row .label{ color:var(--text-muted); }
+  .today-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+
+  .period-tabs{ display:flex; gap:6px; margin-bottom:14px; }
+  .period-tab{
+    flex:1; border:1px solid var(--border); background:var(--surface-alt); color:var(--text);
+    font-family:inherit; font-size:13px; font-weight:600; padding:9px 6px; border-radius:9px; cursor:pointer;
+  }
+  .period-tab.selected{ background:var(--green-900); border-color:var(--green-900); color:var(--yellow-500); }
+
+  .month-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .month-nav button{
+    background:none; border:none; font-size:20px; color:var(--green-900); cursor:pointer;
+    padding:2px 12px; font-family:inherit; line-height:1;
+  }
+  .month-nav button:disabled{ color:var(--border); cursor:default; }
+  .month-nav .month-label{ font-size:14px; font-weight:600; color:var(--text); }
+  .month-stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:14px; border-top:1px solid var(--border); }
+  .month-stat-row:first-of-type{ border-top:none; }
+  .month-stat-row .label{ color:var(--text-muted); }
+  .month-stat-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+
+  .history-header{ display:flex; justify-content:space-between; align-items:baseline; margin:8px 4px 6px; }
+  .history-header h2{ margin:0; font-size:14px; font-weight:600; color:var(--text); }
+  hr.divider{ border:none; border-top:1px solid var(--border); margin:0 0 8px; }
+
+  .empty-state{ padding:28px 8px; text-align:center; color:var(--text-muted); font-size:14px; line-height:1.5; }
+
+  .day-group{ margin-bottom:6px; }
+  .day-heading{ display:flex; justify-content:space-between; align-items:baseline; padding:14px 4px 4px; font-size:13px; font-weight:600; color:var(--text-muted); }
+  .day-heading .day-total{ font-family:'JetBrains Mono', ui-monospace, monospace; color:var(--green-700); }
+
+  .entry{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 4px; border-top:1px solid var(--border); cursor:pointer; }
+  .entry:active{ background:var(--surface-alt); }
+  .entry .range{ font-family:'JetBrains Mono', ui-monospace, monospace; font-size:14px; color:var(--text); }
+  .entry .edit-hint{ font-size:13px; color:var(--text-muted); }
+  .entry .activity-tag{
+    display:inline-block; font-family:'Work Sans', sans-serif; font-size:11px; font-weight:500;
+    color:var(--green-700); background:var(--surface-alt); padding:2px 9px; border-radius:999px; margin-top:4px;
+  }
+  .entry .pause-note{
+    display:block; font-family:'Work Sans', sans-serif; font-size:11px;
+    color:var(--yellow-700); margin-top:3px;
+  }
+  .entry .right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .entry .duration{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; font-size:14px; color:var(--green-900); }
+  .entry .delete{ background:none; border:none; cursor:pointer; font-family:inherit; font-size:13px; color:var(--text-muted); padding:4px 2px; }
+  .entry .delete.confirm{ color:var(--danger); font-weight:600; }
+  .entry .delete:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
+
+  .export-link{
+    margin:26px auto 0; background:none; border:none; cursor:pointer; font-family:inherit;
+    font-size:13px; color:var(--text-muted); text-decoration:underline; padding:6px;
+  }
+
+  .field-row{ margin-bottom:12px; }
+  .field-row label{ display:block; font-size:12px; color:var(--text-muted); margin-bottom:4px; }
+  .field-row input, .field-row select{
+    width:100%; border:1px solid var(--border); border-radius:9px; padding:10px 11px;
+    font-family:inherit; font-size:14px; background:var(--surface-alt); color:var(--text);
+  }
+  .field-row.two-col{ display:flex; gap:10px; }
+  .field-row.two-col > div{ flex:1; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(22,36,27,0.45); display:none; align-items:flex-end; justify-content:center; z-index:10; }
+  .modal-overlay.open{ display:flex; }
+  .modal{ background:var(--surface); width:100%; max-width:480px; border-radius:18px 18px 0 0; padding:20px; max-height:80vh; overflow:auto; }
+  .modal h2{ margin:0 0 10px; font-size:15px; font-weight:600; }
+  .modal textarea{
+    width:100%; height:140px; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:11px;
+    color:var(--text); background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; padding:10px; resize:vertical;
+  }
+  .modal-actions{ display:flex; gap:10px; margin-top:12px; }
+  .modal-actions button{ flex:1; border:none; border-radius:10px; padding:12px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+  .modal-actions .primary{ background:var(--green-900); color:var(--yellow-500); }
+  .modal-actions .secondary{ background:var(--surface-alt); color:var(--text); }
+  .modal-status{ margin-top:10px; font-size:12px; color:var(--text-muted); min-height:16px; }
+  .modal-close{ display:block; margin:4px auto 0; background:none; border:none; color:var(--text-muted); font-size:13px; text-decoration:underline; cursor:pointer; padding:8px; }
+
+  #loadingOverlay{ position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--text-muted); z-index:20; }
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">Wird geladen …</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <h1>Zeiterfassung</h1>
+    <div class="header-actions">
+      <button class="icon-btn" id="headerAddBtn" aria-label="Dienst nachtragen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="icon-btn" id="headerCalendarBtn" aria-label="Übersicht">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
+      </button>
+      <div class="file-menu-wrap">
+        <button class="icon-btn" id="headerFileBtn" aria-label="Exportieren oder Importieren">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        </button>
+        <div class="file-menu" id="fileMenu">
+          <button id="fileMenuExport">Exportieren</button>
+          <button id="fileMenuImport">Importieren</button>
+        </div>
+      </div>
+      <button class="icon-btn" id="headerSettingsBtn" aria-label="Einstellungen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="storage-note" id="storageNote" style="display:none;">
+    Automatisches Speichern ist in dieser Ansicht nicht verfügbar. Öffne die Datei direkt in einem Browser außerhalb der Claude-App, damit sie automatisch speichert.
+  </div>
+
+  <div class="tracker">
+    <div class="timer" id="timerDisplay">00:00:00</div>
+    <div class="status" id="statusLabel">Bereit zum Start</div>
+    <button class="toggle-btn" id="toggleBtn">Dienst beginnen</button>
+    <button class="pause-btn" id="pauseBtn">Pause</button>
+
+    <div class="activity-section">
+      <div class="activity-label">Tätigkeit</div>
+      <div class="activity-grid" id="activityGrid"></div>
+      <div class="add-activity-row" id="addActivityRow" style="display:none;">
+        <input type="text" id="addActivityInput" placeholder="Neue Tätigkeit…" maxlength="40">
+        <button class="confirm" id="confirmActivityBtn">Hinzufügen</button>
+        <button class="cancel" id="cancelActivityBtn">×</button>
+      </div>
+      <button class="activity-edit-toggle" id="activityEditToggle" style="display:none;">Tätigkeit löschen</button>
+      <div class="activity-edit-hint" id="activityEditHint" style="display:none;">Tippe auf eine Tätigkeit, um sie zu entfernen. Bereits erfasste Dienste bleiben unverändert.</div>
+    </div>
+  </div>
+
+  <div class="today-row">
+    <span class="label">Heute</span>
+    <span class="value" id="todayTotal">0,0 Std.</span>
+  </div>
+
+  <div class="history-header"><h2>Verlauf</h2></div>
+  <hr class="divider">
+
+  <div id="historyContainer"></div>
+
+  <div class="modal-status" id="importStatus"></div>
+  <input type="file" id="importFileInput" accept=".csv,text/csv" style="display:none;">
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+    <div class="field-row">
+      <label for="setRounding">Dienstzeit runden auf</label>
+      <select id="setRounding">
+        <option value="0">Nicht runden (minutengenau)</option>
+        <option value="5">5 Minuten</option>
+        <option value="15">15 Minuten</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label for="setCsvFormat">Dauer in der CSV-Datei</label>
+      <select id="setCsvFormat">
+        <option value="hm">Stunden:Minuten (8:30)</option>
+        <option value="decimal">Dezimal (8,50)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label for="setMonthTarget">Monatssoll in Stunden (0 = aus)</label>
+      <input type="number" id="setMonthTarget" min="0" max="400" step="1" inputmode="numeric">
+    </div>
+
+    <div class="field-row">
+      <label>Cloud-Sync</label>
+      <div id="syncSignedOut">
+        <input type="email" id="syncEmail" placeholder="E-Mail" autocomplete="username">
+        <input type="password" id="syncPassword" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password" style="margin-top:8px;">
+        <div class="add-activity-row" style="margin-top:8px;">
+          <button class="confirm" id="syncSignInBtn" style="flex:1;">Anmelden</button>
+          <button class="cancel" id="syncSignUpBtn" style="flex:1;">Registrieren</button>
+        </div>
+      </div>
+      <div id="syncSignedIn" style="display:none;">
+        <div class="month-stat-row"><span class="label">Angemeldet als</span><span class="value" id="syncEmailLabel" style="font-size:12px;"></span></div>
+        <button class="cancel" id="syncSignOutBtn" style="width:100%; margin-top:6px;">Abmelden</button>
+      </div>
+      <div class="modal-status" id="syncStatus"></div>
+    </div>
+
+    <div class="modal-status" id="settingsStatus"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="settingsCloseBtn">Schließen</button>
+      <button class="primary" id="settingsSaveBtn">Speichern</button>
+    </div>
+    <button class="modal-close" id="settingsResetBtn" style="color:var(--danger);">Alle Daten löschen</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="overviewModal">
+  <div class="modal">
+    <h2>Übersicht</h2>
+    <div class="period-tabs">
+      <button class="period-tab" data-period="year">Jahr</button>
+      <button class="period-tab" data-period="quarter">Quartal</button>
+      <button class="period-tab selected" data-period="month">Monat</button>
+    </div>
+    <div class="month-nav">
+      <button id="overviewPrevBtn" aria-label="Vorheriger Zeitraum">‹</button>
+      <span class="month-label" id="overviewLabel">September 2026</span>
+      <button id="overviewNextBtn" aria-label="Nächster Zeitraum">›</button>
+    </div>
+    <div class="month-stat-row"><span class="label">Arbeitstage</span><span class="value" id="overviewDays">0</span></div>
+    <div class="month-stat-row"><span class="label">Gesamt</span><span class="value" id="overviewTotal">0:00 Std.</span></div>
+    <div class="month-stat-row"><span class="label">Ø pro Dienst</span><span class="value" id="overviewAvg">–</span></div>
+    <div class="month-stat-row" id="overviewTargetRow" style="display:none;"><span class="label">Soll</span><span class="value" id="overviewTarget">–</span></div>
+    <div class="month-stat-row" id="overviewDiffRow" style="display:none;"><span class="label">Differenz</span><span class="value" id="overviewDiff">–</span></div>
+    <div class="modal-actions">
+      <button class="secondary" id="overviewCloseBtn">Schließen</button>
+      <button class="primary" id="overviewCsvBtn">Als CSV</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="manualModal">
+  <div class="modal">
+    <h2 id="manualModalTitle">Dienst nachtragen</h2>
+    <div class="field-row">
+      <label for="manualDate">Datum</label>
+      <input type="date" id="manualDate">
+    </div>
+    <div class="field-row two-col">
+      <div>
+        <label for="manualStart">Start</label>
+        <input type="time" id="manualStart">
+      </div>
+      <div>
+        <label for="manualEnd">Ende</label>
+        <input type="time" id="manualEnd">
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="manualActivity">Tätigkeit</label>
+      <select id="manualActivity"></select>
+      <div class="add-activity-row" id="manualAddActivityRow" style="display:none; margin-top:8px;">
+        <input type="text" id="manualNewActivityInput" placeholder="Neue Tätigkeit…" maxlength="40">
+        <button class="confirm" id="manualNewActivityConfirm">Übernehmen</button>
+      </div>
+    </div>
+    <div class="modal-status" id="manualStatus"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="manualCancelBtn">Abbrechen</button>
+      <button class="primary" id="manualAddBtn">Eintragen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <h2>Export</h2>
+    <textarea id="exportTextarea" readonly></textarea>
+    <div class="modal-actions">
+      <button class="primary" id="downloadBtn">Herunterladen</button>
+      <button class="secondary" id="shareBtn" style="display:none;">Teilen</button>
+      <button class="secondary" id="copyBtn">Kopieren</button>
+    </div>
+    <div class="modal-status" id="exportStatus"></div>
+    <button class="modal-close" id="closeModalBtn">Schließen</button>
+  </div>
+</div>
+
+<script type="module">
+(function(){
+  let activeSession = null;
+  let entries = [];
+  let activities = [];
+  let currentActivity = null;
+  let isAddingActivity = false;
+  let isEditingActivities = false;
+  let tickInterval = null;
+  let pendingDeleteId = null;
+  let pendingDeleteTimeout = null;
+  let editingEntryId = null;
+  let localStorageOk = false;
+
+  const LS_ENTRIES = 'zf_entries';
+  const LS_ACTIVITIES = 'zf_activities';
+  const LS_ACTIVE = 'zf_active_session';
+  const LS_SETTINGS = 'zf_settings';
+
+  let settings = { roundingMin: 0, csvFormat: 'hm', monthTargetHours: 0 };
+
+  // --- Firebase: Anmeldung + Cloud-Sync (optional, App funktioniert auch ohne) ---
+  // Dynamisch geladen statt per top-level import, damit ein Netzwerkausfall
+  // (z.B. offline als installierte PWA) nicht die ganze App blockiert.
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhGDS1Y4ofKSpELogXN56Z-HT9CoUwgI8",
+    authDomain: "zeiterfassung-4f111.firebaseapp.com",
+    projectId: "zeiterfassung-4f111",
+    storageBucket: "zeiterfassung-4f111.firebasestorage.app",
+    messagingSenderId: "204702454486",
+    appId: "1:204702454486:web:216e2d1459e88c1e316f77"
+  };
+  let fbAuth = null, fbDb = null, currentUser = null, cloudSyncTimeout = null;
+  let fb_createUser, fb_signIn, fb_signOut, fb_onAuthStateChanged, fb_doc, fb_getDoc, fb_setDoc;
+
+  async function loadFirebase(){
+    try{
+      const [appMod, authMod, fsMod] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+      ]);
+      const fbApp = appMod.initializeApp(firebaseConfig);
+      fbAuth = authMod.getAuth(fbApp);
+      fbDb = fsMod.getFirestore(fbApp);
+      fb_createUser = authMod.createUserWithEmailAndPassword;
+      fb_signIn = authMod.signInWithEmailAndPassword;
+      fb_signOut = authMod.signOut;
+      fb_onAuthStateChanged = authMod.onAuthStateChanged;
+      fb_doc = fsMod.doc; fb_getDoc = fsMod.getDoc; fb_setDoc = fsMod.setDoc;
+
+      fb_onAuthStateChanged(fbAuth, (user) => {
+        currentUser = user;
+        updateSyncUI();
+        if(user){
+          el.syncEmail.value = '';
+          el.syncPassword.value = '';
+          pullFromCloud();
+        }
+      });
+    }catch(e){
+      setSyncStatus('Cloud-Sync momentan nicht erreichbar — App funktioniert lokal weiter.');
+    }
+  }
+
+  function setSyncStatus(text){ if(el.syncStatus) el.syncStatus.textContent = text; }
+
+  function updateSyncUI(){
+    if(!el.syncSignedOut) return;
+    if(currentUser){
+      el.syncSignedOut.style.display = 'none';
+      el.syncSignedIn.style.display = 'block';
+      el.syncEmailLabel.textContent = currentUser.email;
+    } else {
+      el.syncSignedOut.style.display = 'block';
+      el.syncSignedIn.style.display = 'none';
+    }
+  }
+
+  function translateAuthError(code){
+    const map = {
+      'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+      'auth/missing-password': 'Bitte ein Passwort eingeben.',
+      'auth/weak-password': 'Passwort muss mind. 6 Zeichen haben.',
+      'auth/email-already-in-use': 'Diese E-Mail ist bereits registriert — stattdessen anmelden.',
+      'auth/invalid-credential': 'E-Mail oder Passwort falsch.',
+      'auth/wrong-password': 'E-Mail oder Passwort falsch.',
+      'auth/user-not-found': 'Kein Konto mit dieser E-Mail gefunden.',
+      'auth/too-many-requests': 'Zu viele Versuche — kurz warten und erneut versuchen.',
+      'auth/network-request-failed': 'Keine Internetverbindung.'
+    };
+    return map[code] || ('Fehler: ' + (code || 'unbekannt'));
+  }
+
+  function userDocRef(){
+    if(!fbDb || !currentUser) return null;
+    return fb_doc(fbDb, 'users', currentUser.uid, 'data', 'main');
+  }
+
+  async function pushToCloud(){
+    const ref = userDocRef();
+    if(!ref) return;
+    try{
+      await fb_setDoc(ref, { entries, activities, settings, updatedAt: new Date().toISOString() });
+      setSyncStatus('Synchronisiert.');
+    }catch(e){
+      setSyncStatus('Synchronisierung fehlgeschlagen — lokal bleibt alles gespeichert.');
+    }
+  }
+
+  function scheduleCloudSync(){
+    if(!currentUser) return;
+    clearTimeout(cloudSyncTimeout);
+    cloudSyncTimeout = setTimeout(pushToCloud, 800);
+  }
+
+  function mergeCloudData(cloud){
+    if(!cloud) return;
+    if(Array.isArray(cloud.entries)){
+      const existingIds = new Set(entries.map(e => e.id));
+      cloud.entries.forEach(e => { if(!existingIds.has(e.id)){ entries.push(e); existingIds.add(e.id); } });
+    }
+    if(Array.isArray(cloud.activities)){
+      const existingNames = new Set(activities.map(a => a.toLowerCase()));
+      cloud.activities.forEach(a => { if(!existingNames.has(a.toLowerCase())){ activities.push(a); existingNames.add(a.toLowerCase()); } });
+    }
+    if(cloud.settings){ settings = Object.assign(settings, cloud.settings); }
+  }
+
+  async function pullFromCloud(){
+    const ref = userDocRef();
+    if(!ref) return;
+    setSyncStatus('Lade Cloud-Daten…');
+    try{
+      const snap = await fb_getDoc(ref);
+      if(snap.exists()){
+        mergeCloudData(snap.data());
+        persistLocalStorageOnly();
+        renderAll();
+      }
+      await pushToCloud(); // zusammengeführten Stand zurückschreiben
+      setSyncStatus('Synchronisiert.');
+    }catch(e){
+      setSyncStatus('Cloud-Daten konnten nicht geladen werden — arbeite lokal weiter.');
+    }
+  }
+
+  const el = {
+    app: document.getElementById('app'),
+    loading: document.getElementById('loadingOverlay'),
+    storageNote: document.getElementById('storageNote'),
+    timer: document.getElementById('timerDisplay'),
+    status: document.getElementById('statusLabel'),
+    toggleBtn: document.getElementById('toggleBtn'),
+    pauseBtn: document.getElementById('pauseBtn'),
+    activityGrid: document.getElementById('activityGrid'),
+    activityEditToggle: document.getElementById('activityEditToggle'),
+    activityEditHint: document.getElementById('activityEditHint'),
+    addActivityRow: document.getElementById('addActivityRow'),
+    addActivityInput: document.getElementById('addActivityInput'),
+    confirmActivityBtn: document.getElementById('confirmActivityBtn'),
+    cancelActivityBtn: document.getElementById('cancelActivityBtn'),
+    todayTotal: document.getElementById('todayTotal'),
+    monthPrevBtn: document.getElementById('monthPrevBtn'),
+    monthNextBtn: document.getElementById('monthNextBtn'),
+    monthLabel: document.getElementById('monthLabel'),
+    monthDays: document.getElementById('monthDays'),
+    monthTotal: document.getElementById('monthTotal'),
+    monthAvg: document.getElementById('monthAvg'),
+    monthExportBtn: document.getElementById('monthExportBtn'),
+    historyContainer: document.getElementById('historyContainer'),
+    headerSettingsBtn: document.getElementById('headerSettingsBtn'),
+    settingsModal: document.getElementById('settingsModal'),
+    setRounding: document.getElementById('setRounding'),
+    setCsvFormat: document.getElementById('setCsvFormat'),
+    setMonthTarget: document.getElementById('setMonthTarget'),
+    settingsStatus: document.getElementById('settingsStatus'),
+    syncSignedOut: document.getElementById('syncSignedOut'),
+    syncSignedIn: document.getElementById('syncSignedIn'),
+    syncEmail: document.getElementById('syncEmail'),
+    syncPassword: document.getElementById('syncPassword'),
+    syncEmailLabel: document.getElementById('syncEmailLabel'),
+    syncSignInBtn: document.getElementById('syncSignInBtn'),
+    syncSignUpBtn: document.getElementById('syncSignUpBtn'),
+    syncSignOutBtn: document.getElementById('syncSignOutBtn'),
+    syncStatus: document.getElementById('syncStatus'),
+    settingsCloseBtn: document.getElementById('settingsCloseBtn'),
+    settingsSaveBtn: document.getElementById('settingsSaveBtn'),
+    settingsResetBtn: document.getElementById('settingsResetBtn'),
+    overviewTargetRow: document.getElementById('overviewTargetRow'),
+    overviewTarget: document.getElementById('overviewTarget'),
+    overviewDiffRow: document.getElementById('overviewDiffRow'),
+    overviewDiff: document.getElementById('overviewDiff'),
+    headerCalendarBtn: document.getElementById('headerCalendarBtn'),
+    overviewModal: document.getElementById('overviewModal'),
+    overviewPrevBtn: document.getElementById('overviewPrevBtn'),
+    overviewNextBtn: document.getElementById('overviewNextBtn'),
+    overviewLabel: document.getElementById('overviewLabel'),
+    overviewDays: document.getElementById('overviewDays'),
+    overviewTotal: document.getElementById('overviewTotal'),
+    overviewAvg: document.getElementById('overviewAvg'),
+    overviewCloseBtn: document.getElementById('overviewCloseBtn'),
+    overviewCsvBtn: document.getElementById('overviewCsvBtn'),
+    headerAddBtn: document.getElementById('headerAddBtn'),
+    headerFileBtn: document.getElementById('headerFileBtn'),
+    fileMenu: document.getElementById('fileMenu'),
+    fileMenuExport: document.getElementById('fileMenuExport'),
+    fileMenuImport: document.getElementById('fileMenuImport'),
+    exportModal: document.getElementById('exportModal'),
+    exportTextarea: document.getElementById('exportTextarea'),
+    exportStatus: document.getElementById('exportStatus'),
+    copyBtn: document.getElementById('copyBtn'),
+    shareBtn: document.getElementById('shareBtn'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    closeModalBtn: document.getElementById('closeModalBtn'),
+    manualModal: document.getElementById('manualModal'),
+    manualModalTitle: document.getElementById('manualModalTitle'),
+    importFileInput: document.getElementById('importFileInput'),
+    importStatus: document.getElementById('importStatus'),
+    manualDate: document.getElementById('manualDate'),
+    manualStart: document.getElementById('manualStart'),
+    manualEnd: document.getElementById('manualEnd'),
+    manualActivity: document.getElementById('manualActivity'),
+    manualAddActivityRow: document.getElementById('manualAddActivityRow'),
+    manualNewActivityInput: document.getElementById('manualNewActivityInput'),
+    manualNewActivityConfirm: document.getElementById('manualNewActivityConfirm'),
+    manualStatus: document.getElementById('manualStatus'),
+    manualCancelBtn: document.getElementById('manualCancelBtn'),
+    manualAddBtn: document.getElementById('manualAddBtn')
+  };
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function formatElapsed(ms){
+    const totalSec = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+    return pad(h)+':'+pad(m)+':'+pad(s);
+  }
+  function formatDuration(ms){
+    const totalMinutes = Math.floor(ms/60000);
+    const h = Math.floor(totalMinutes/60);
+    const m = totalMinutes%60;
+    return h+':'+pad(m)+' Std.';
+  }
+  function formatTime(date){ return date.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}); }
+  function dayKey(date){ return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate()); }
+  function formatDayHeading(date){
+    const str = date.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
+    return str.charAt(0).toUpperCase()+str.slice(1);
+  }
+  function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+  // --- localStorage: automatisches Speichern, wenn der Browser es zulässt ---
+  function detectLocalStorage(){
+    try{
+      const k = '__zf_probe__';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return true;
+    }catch(e){ return false; }
+  }
+  function loadFromLocalStorage(){
+    try{
+      const e = localStorage.getItem(LS_ENTRIES);
+      entries = e ? JSON.parse(e) : [];
+      const a = localStorage.getItem(LS_ACTIVITIES);
+      activities = a ? JSON.parse(a) : [];
+      const s = localStorage.getItem(LS_ACTIVE);
+      activeSession = s ? JSON.parse(s) : null;
+      const st = localStorage.getItem(LS_SETTINGS);
+      if(st){ settings = Object.assign(settings, JSON.parse(st)); }
+    }catch(e){ /* beschädigte Daten - lieber frisch starten als abstürzen */ }
+  }
+  function persistLocalStorageOnly(){
+    if(!localStorageOk) return;
+    try{
+      localStorage.setItem(LS_ENTRIES, JSON.stringify(entries));
+      localStorage.setItem(LS_ACTIVITIES, JSON.stringify(activities));
+      if(activeSession){ localStorage.setItem(LS_ACTIVE, JSON.stringify(activeSession)); }
+      else{ localStorage.removeItem(LS_ACTIVE); }
+      localStorage.setItem(LS_SETTINGS, JSON.stringify(settings));
+    }catch(e){ /* z.B. Speicher voll - App läuft trotzdem im aktuellen Fenster weiter */ }
+  }
+
+  function persistLocalStorage(){
+    persistLocalStorageOnly();
+    scheduleCloudSync();
+  }
+
+  function applyRounding(ms){
+    const step = settings.roundingMin;
+    if(!step) return ms;
+    const stepMs = step*60000;
+    return Math.max(0, Math.round(ms/stepMs)*stepMs);
+  }
+
+  function sessionPausedMs(session, upTo){
+    const cutoff = upTo || Date.now();
+    let paused = (session.pauses || []).reduce((sum,p) => sum + (new Date(p.to) - new Date(p.from)), 0);
+    if(typeof session.pausedMs === 'number' && !session.pauses){ paused = session.pausedMs; }
+    if(session.pausedAt){ paused += cutoff - new Date(session.pausedAt).getTime(); }
+    return paused;
+  }
+
+  function currentElapsedMs(session){
+    const now = Date.now();
+    const start = new Date(session.startTime).getTime();
+    return (now - start) - sessionPausedMs(session, now);
+  }
+
+  function todayTotalMs(){
+    const key = dayKey(new Date());
+    let total = entries.filter(e => dayKey(new Date(e.start)) === key).reduce((sum,e) => sum + e.durationMs, 0);
+    if(activeSession){
+      const start = new Date(activeSession.startTime);
+      if(dayKey(start) === key){ total += currentElapsedMs(activeSession); }
+    }
+    return total;
+  }
+
+  function tick(){
+    if(!activeSession) return;
+    el.timer.textContent = formatElapsed(currentElapsedMs(activeSession));
+    el.todayTotal.textContent = formatDuration(todayTotalMs());
+  }
+  function startTicking(){ stopTicking(); tick(); tickInterval = setInterval(tick, 1000); }
+  function stopTicking(){ if(tickInterval){ clearInterval(tickInterval); tickInterval = null; } }
+
+  // Auf volle Minuten abschneiden, damit Arbeitszeit + Pause exakt der angezeigten
+  // Zeitspanne entsprechen (eine angefangene Minute gilt nicht als volle Minute).
+  function floorToMinuteIso(iso){
+    const d = new Date(iso);
+    d.setSeconds(0, 0);
+    return d.toISOString();
+  }
+
+  function toggleTracking(){
+    if(activeSession){
+      const endTime = new Date();
+      const rawPauses = (activeSession.pauses || []).slice();
+      if(activeSession.pausedAt){
+        rawPauses.push({ from: activeSession.pausedAt, to: endTime.toISOString() });
+      }
+      const startIso = floorToMinuteIso(activeSession.startTime);
+      const endIso = floorToMinuteIso(endTime.toISOString());
+      const pauses = rawPauses
+        .map(p => ({ from: floorToMinuteIso(p.from), to: floorToMinuteIso(p.to) }))
+        .filter(p => new Date(p.to) > new Date(p.from));
+      const pausedTotal = pauses.reduce((sum,p) => sum + (new Date(p.to) - new Date(p.from)), 0);
+      const spanMs = new Date(endIso) - new Date(startIso);
+      entries.unshift({
+        id: 'e'+Date.now(),
+        start: startIso,
+        end: endIso,
+        durationMs: applyRounding(Math.max(0, spanMs - pausedTotal)),
+        pauseMs: pausedTotal,
+        pauses: pauses,
+        activity: activeSession.activity || ''
+      });
+      activeSession = null;
+      currentActivity = null;
+      stopTicking();
+    } else {
+      activeSession = { startTime: new Date().toISOString(), activity: currentActivity, pausedAt: null, pauses: [] };
+      startTicking();
+    }
+    persistLocalStorage();
+    renderAll();
+  }
+
+  function togglePause(){
+    if(!activeSession) return;
+    if(activeSession.pausedAt){
+      if(!activeSession.pauses) activeSession.pauses = [];
+      activeSession.pauses.push({ from: activeSession.pausedAt, to: new Date().toISOString() });
+      activeSession.pausedAt = null;
+    } else {
+      activeSession.pausedAt = new Date().toISOString();
+    }
+    persistLocalStorage();
+    renderAll();
+  }
+  el.pauseBtn.addEventListener('click', togglePause);
+
+  function selectActivity(name){
+    currentActivity = (currentActivity === name) ? null : name;
+    if(activeSession){
+      activeSession.activity = currentActivity;
+      persistLocalStorage();
+    }
+    renderActivityGrid();
+  }
+
+  function addActivityIfNew(name){
+    const exists = activities.some(a => a.toLowerCase() === name.toLowerCase());
+    if(!exists){
+      activities.push(name);
+      persistLocalStorage();
+    }
+    return exists ? activities.find(a => a.toLowerCase() === name.toLowerCase()) : name;
+  }
+
+  function openAddActivity(){ isAddingActivity = true; isEditingActivities = false; renderActivityGrid(); el.addActivityInput.focus(); }
+  function closeAddActivity(){ isAddingActivity = false; isEditingActivities = false; el.addActivityInput.value = ''; renderActivityGrid(); }
+  function confirmAddActivity(){
+    const name = el.addActivityInput.value.trim();
+    if(!name){ closeAddActivity(); return; }
+    const finalName = addActivityIfNew(name);
+    isAddingActivity = false;
+    el.addActivityInput.value = '';
+    selectActivity(finalName);
+  }
+
+  el.confirmActivityBtn.addEventListener('click', confirmAddActivity);
+  el.cancelActivityBtn.addEventListener('click', closeAddActivity);
+  el.addActivityInput.addEventListener('keydown', (ev) => {
+    if(ev.key === 'Enter'){ ev.preventDefault(); confirmAddActivity(); }
+    if(ev.key === 'Escape'){ closeAddActivity(); }
+  });
+
+  function deleteActivity(name){
+    activities = activities.filter(a => a !== name);
+    if(currentActivity === name){ currentActivity = null; }
+    if(activeSession && activeSession.activity === name){ activeSession.activity = null; }
+    if(activities.length === 0){ isEditingActivities = false; }
+    persistLocalStorage();
+    renderActivityGrid();
+  }
+
+  function renderActivityGrid(){
+    el.activityGrid.innerHTML = '';
+    activities.forEach(name => {
+      const chip = document.createElement('button');
+      if(isEditingActivities){
+        chip.className = 'activity-chip removable';
+        chip.textContent = name + '  ×';
+        chip.setAttribute('aria-label', name + ' löschen');
+        chip.addEventListener('click', () => deleteActivity(name));
+      } else {
+        chip.className = 'activity-chip' + (currentActivity === name ? ' selected' : '');
+        chip.textContent = name;
+        chip.addEventListener('click', () => selectActivity(name));
+      }
+      el.activityGrid.appendChild(chip);
+    });
+    if(!isEditingActivities){
+      const newChip = document.createElement('button');
+      newChip.className = 'activity-chip new-chip';
+      newChip.textContent = '+ Neu';
+      newChip.addEventListener('click', openAddActivity);
+      el.activityGrid.appendChild(newChip);
+    }
+    el.addActivityRow.style.display = (isAddingActivity && !isEditingActivities) ? 'flex' : 'none';
+    el.activityEditToggle.style.display = activities.length ? 'block' : 'none';
+    el.activityEditToggle.textContent = isEditingActivities ? 'Fertig' : 'Tätigkeit löschen';
+    el.activityEditToggle.classList.toggle('active', isEditingActivities);
+    el.activityEditHint.style.display = isEditingActivities ? 'block' : 'none';
+  }
+
+  el.activityEditToggle.addEventListener('click', () => {
+    if(isEditingActivities){
+      isEditingActivities = false;
+      isAddingActivity = false;
+      el.addActivityInput.value = '';
+    } else {
+      isEditingActivities = true;
+      isAddingActivity = false;
+      el.addActivityInput.value = '';
+    }
+    renderActivityGrid();
+  });
+
+  function requestDelete(id){
+    if(pendingDeleteId === id){
+      entries = entries.filter(e => e.id !== id);
+      pendingDeleteId = null;
+      clearTimeout(pendingDeleteTimeout);
+      persistLocalStorage();
+      renderHistory();
+    } else {
+      pendingDeleteId = id;
+      clearTimeout(pendingDeleteTimeout);
+      pendingDeleteTimeout = setTimeout(() => { pendingDeleteId = null; renderHistory(); }, 3000);
+      renderHistory();
+    }
+  }
+
+  function renderHistory(){
+    el.historyContainer.innerHTML = '';
+    if(entries.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'Noch keine Einträge. Tippe auf „Dienst beginnen“, um deinen ersten Dienst zu erfassen.';
+      el.historyContainer.appendChild(empty);
+      return;
+    }
+    const sorted = entries.slice().sort((a,b) => new Date(b.start) - new Date(a.start));
+    const groups = [];
+    let currentKey = null, currentGroup = null;
+    sorted.forEach(entry => {
+      const key = dayKey(new Date(entry.start));
+      if(key !== currentKey){
+        currentKey = key;
+        currentGroup = { key, date: new Date(entry.start), items: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.items.push(entry);
+    });
+    groups.forEach(group => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'day-group';
+      const dayTotal = group.items.reduce((sum,e) => sum + e.durationMs, 0);
+      const heading = document.createElement('div');
+      heading.className = 'day-heading';
+      heading.innerHTML = '<span>'+formatDayHeading(group.date)+'</span><span class="day-total">'+formatDuration(dayTotal)+'</span>';
+      groupEl.appendChild(heading);
+      group.items.forEach(entry => {
+        const row = document.createElement('div');
+        row.className = 'entry';
+        const left = document.createElement('div');
+        const start = new Date(entry.start), end = new Date(entry.end);
+        let pauseHtml = '';
+        if(entry.pauseMs > 0){
+          const times = (entry.pauses || []).map(p => formatTime(new Date(p.from))+'–'+formatTime(new Date(p.to))).join(', ');
+          pauseHtml = '<span class="pause-note">Pause '+formatDuration(entry.pauseMs)+(times ? ' ('+times+')' : '')+'</span>';
+        }
+        left.innerHTML = '<span class="range">'+formatTime(start)+'–'+formatTime(end)+'</span>' +
+          (entry.activity ? '<span class="activity-tag">'+escapeHtml(entry.activity)+'</span>' : '') + pauseHtml;
+        const right = document.createElement('div');
+        right.className = 'right';
+        const duration = document.createElement('span');
+        duration.className = 'duration';
+        duration.textContent = formatDuration(entry.durationMs);
+        const editHint = document.createElement('span');
+        editHint.className = 'edit-hint';
+        editHint.textContent = '✎';
+        const del = document.createElement('button');
+        del.className = 'delete' + (pendingDeleteId === entry.id ? ' confirm' : '');
+        del.textContent = pendingDeleteId === entry.id ? 'Löschen?' : '×';
+        del.setAttribute('aria-label', 'Eintrag löschen');
+        del.addEventListener('click', (ev) => { ev.stopPropagation(); requestDelete(entry.id); });
+        right.appendChild(duration);
+        right.appendChild(editHint);
+        right.appendChild(del);
+        row.appendChild(left);
+        row.appendChild(right);
+        row.addEventListener('click', () => openEditEntry(entry));
+        groupEl.appendChild(row);
+      });
+      el.historyContainer.appendChild(groupEl);
+    });
+  }
+
+  function renderTracker(){
+    if(activeSession){
+      el.toggleBtn.textContent = 'Dienst beenden';
+      el.toggleBtn.classList.add('running');
+      el.pauseBtn.style.display = 'block';
+      if(activeSession.pausedAt){
+        el.pauseBtn.textContent = 'Fortsetzen';
+        el.timer.classList.remove('active');
+        el.timer.classList.add('paused');
+        el.status.textContent = 'Pausiert seit '+formatTime(new Date(activeSession.pausedAt))+' Uhr';
+      } else {
+        el.pauseBtn.textContent = 'Pause';
+        el.timer.classList.add('active');
+        el.timer.classList.remove('paused');
+        el.status.textContent = 'Dienst läuft seit '+formatTime(new Date(activeSession.startTime))+' Uhr';
+      }
+      tick();
+    } else {
+      el.toggleBtn.textContent = 'Dienst beginnen';
+      el.toggleBtn.classList.remove('running');
+      el.pauseBtn.style.display = 'none';
+      el.timer.classList.remove('active');
+      el.timer.classList.remove('paused');
+      el.status.textContent = 'Bereit zum Start';
+      el.timer.textContent = '00:00:00';
+    }
+    el.todayTotal.textContent = formatDuration(todayTotalMs());
+  }
+
+  function renderAll(){ renderTracker(); renderActivityGrid(); renderHistory(); }
+
+  let overviewPeriod = 'month';
+  let overviewAnchor = new Date();
+
+  function getPeriodRange(period, anchor){
+    const y = anchor.getFullYear();
+    if(period === 'year'){
+      return { start: new Date(y,0,1), end: new Date(y+1,0,1), label: String(y) };
+    }
+    if(period === 'quarter'){
+      const q = Math.floor(anchor.getMonth()/3);
+      const startMonth = q*3;
+      return { start: new Date(y,startMonth,1), end: new Date(y,startMonth+3,1), label: 'Q'+(q+1)+' '+y };
+    }
+    const m = anchor.getMonth();
+    const rawLabel = anchor.toLocaleDateString('de-DE', { month:'long', year:'numeric' });
+    return { start: new Date(y,m,1), end: new Date(y,m+1,1), label: rawLabel.charAt(0).toUpperCase()+rawLabel.slice(1) };
+  }
+
+  function periodFilenameSuffix(period, anchor){
+    const y = anchor.getFullYear();
+    if(period === 'year') return String(y);
+    if(period === 'quarter') return y+'-Q'+(Math.floor(anchor.getMonth()/3)+1);
+    return y+'-'+pad(anchor.getMonth()+1);
+  }
+
+  function entriesInRange(range){
+    return entries.filter(e => { const d = new Date(e.start); return d >= range.start && d < range.end; });
+  }
+
+  function renderOverview(){
+    document.querySelectorAll('.period-tab').forEach(btn => btn.classList.toggle('selected', btn.dataset.period === overviewPeriod));
+    const range = getPeriodRange(overviewPeriod, overviewAnchor);
+    el.overviewLabel.textContent = range.label;
+    const periodEntries = entriesInRange(range);
+    const days = new Set(periodEntries.map(e => dayKey(new Date(e.start))));
+    const totalMs = periodEntries.reduce((sum,e) => sum + e.durationMs, 0);
+    el.overviewDays.textContent = String(days.size);
+    el.overviewTotal.textContent = formatDuration(totalMs);
+    el.overviewAvg.textContent = periodEntries.length ? formatDuration(totalMs / periodEntries.length) : '–';
+
+    const targetHours = settings.monthTargetHours;
+    if(targetHours > 0){
+      const months = overviewPeriod === 'year' ? 12 : (overviewPeriod === 'quarter' ? 3 : 1);
+      const targetMs = targetHours * months * 3600000;
+      const diffMs = totalMs - targetMs;
+      el.overviewTarget.textContent = formatDuration(targetMs);
+      el.overviewDiff.textContent = (diffMs >= 0 ? '+' : '−') + formatDuration(Math.abs(diffMs));
+      el.overviewDiff.style.color = diffMs >= 0 ? 'var(--green-700)' : 'var(--danger)';
+      el.overviewTargetRow.style.display = 'flex';
+      el.overviewDiffRow.style.display = 'flex';
+    } else {
+      el.overviewTargetRow.style.display = 'none';
+      el.overviewDiffRow.style.display = 'none';
+    }
+    const currentRange = getPeriodRange(overviewPeriod, new Date());
+    el.overviewNextBtn.disabled = range.start.getTime() >= currentRange.start.getTime();
+  }
+
+  function shiftAnchor(dir){
+    const d = new Date(overviewAnchor);
+    if(overviewPeriod === 'year') d.setFullYear(d.getFullYear()+dir);
+    else if(overviewPeriod === 'quarter') d.setMonth(d.getMonth()+3*dir);
+    else d.setMonth(d.getMonth()+dir);
+    overviewAnchor = d;
+  }
+
+  el.headerCalendarBtn.addEventListener('click', () => {
+    overviewAnchor = new Date();
+    renderOverview();
+    el.overviewModal.classList.add('open');
+  });
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.addEventListener('click', () => { overviewPeriod = btn.dataset.period; renderOverview(); });
+  });
+  el.overviewPrevBtn.addEventListener('click', () => { shiftAnchor(-1); renderOverview(); });
+  el.overviewNextBtn.addEventListener('click', () => { if(el.overviewNextBtn.disabled) return; shiftAnchor(1); renderOverview(); });
+  el.overviewCloseBtn.addEventListener('click', () => el.overviewModal.classList.remove('open'));
+  el.overviewModal.addEventListener('click', (ev) => { if(ev.target === el.overviewModal) el.overviewModal.classList.remove('open'); });
+  el.overviewCsvBtn.addEventListener('click', () => {
+    const range = getPeriodRange(overviewPeriod, overviewAnchor);
+    const periodEntries = entriesInRange(range);
+    exportFilename = 'zeiterfassung-'+periodFilenameSuffix(overviewPeriod, overviewAnchor)+'.csv';
+    el.exportTextarea.value = buildCsv(periodEntries);
+    el.exportStatus.textContent = periodEntries.length ? '' : 'Keine Einträge in diesem Zeitraum.';
+    el.overviewModal.classList.remove('open');
+    el.exportModal.classList.add('open');
+    el.exportTextarea.focus();
+    el.exportTextarea.select();
+  });
+
+  function formatDurationHM(ms){
+    const totalMinutes = Math.floor(ms/60000);
+    const h = Math.floor(totalMinutes/60);
+    const m = totalMinutes%60;
+    return h+':'+pad(m);
+  }
+
+  let exportFilename = 'zeiterfassung.csv';
+
+  function buildCsv(list){
+    const source = list || entries;
+    const fmt = (ms) => settings.csvFormat === 'decimal'
+      ? (ms/3600000).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2})
+      : formatDurationHM(ms);
+    const header = 'Datum;Start;Ende;Dauer;Pause;Anwesend;Tätigkeit';
+    const rows = source.slice().sort((a,b) => new Date(a.start) - new Date(b.start)).map(e => {
+      const start = new Date(e.start), end = new Date(e.end);
+      const dateStr = start.toLocaleDateString('de-DE');
+      const pauseMs = e.pauseMs || 0;
+      const activity = (e.activity || '').replace(/;/g, ',').replace(/\n/g,' ');
+      return [dateStr, formatTime(start), formatTime(end), fmt(e.durationMs), fmt(pauseMs), fmt(end - start), activity].join(';');
+    });
+    return [header].concat(rows).join('\n');
+  }
+
+  function triggerDownload(filename, mimeType, content){
+    const blob = new Blob([content], {type:mimeType});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function openExportModal(){
+    exportFilename = 'zeiterfassung.csv';
+    el.exportTextarea.value = buildCsv();
+    el.exportStatus.textContent = '';
+    el.exportModal.classList.add('open');
+    el.exportTextarea.focus();
+    el.exportTextarea.select();
+  }
+  el.closeModalBtn.addEventListener('click', () => el.exportModal.classList.remove('open'));
+  el.exportModal.addEventListener('click', (ev) => { if(ev.target === el.exportModal) el.exportModal.classList.remove('open'); });
+  el.copyBtn.addEventListener('click', async () => {
+    try{
+      await navigator.clipboard.writeText(el.exportTextarea.value);
+      el.exportStatus.textContent = 'In die Zwischenablage kopiert.';
+    }catch(e){
+      el.exportTextarea.select();
+      el.exportStatus.textContent = 'Automatisches Kopieren nicht möglich — Text ist markiert, zum Kopieren nutzen.';
+    }
+  });
+  function canShareFiles(){
+    if(!navigator.canShare || typeof File === 'undefined') return false;
+    try{
+      const testFile = new File(['x'], 'x.csv', {type:'text/csv'});
+      return !!navigator.canShare({files:[testFile]});
+    }catch(e){ return false; }
+  }
+  if(canShareFiles()){ el.shareBtn.style.display = ''; }
+
+  el.downloadBtn.addEventListener('click', () => {
+    try{
+      triggerDownload(exportFilename, 'text/csv;charset=utf-8;', '\uFEFF' + el.exportTextarea.value);
+      el.exportStatus.textContent = 'Download gestartet — falls nichts passiert, „Teilen“ oder „Kopieren“ nutzen.';
+    }catch(e){
+      el.exportStatus.textContent = 'Download nicht möglich — bitte „Teilen“ oder „Kopieren“ nutzen.';
+    }
+  });
+  el.shareBtn.addEventListener('click', async () => {
+    try{
+      const file = new File(['\uFEFF' + el.exportTextarea.value], exportFilename, {type:'text/csv'});
+      await navigator.share({ files:[file], title:'Zeiterfassung' });
+      el.exportStatus.textContent = 'Geteilt.';
+    }catch(e){
+      if(e && e.name === 'AbortError'){ el.exportStatus.textContent = ''; }
+      else{ el.exportStatus.textContent = 'Teilen nicht möglich — bitte „Kopieren“ nutzen.'; }
+    }
+  });
+
+  // --- Dienst nachtragen: echte Zeitformate (hh:mm), Dauer wird automatisch berechnet ---
+  function populateManualActivitySelect(){
+    let html = '<option value="">– keine –</option>';
+    activities.forEach(a => { html += '<option value="'+escapeHtml(a)+'">'+escapeHtml(a)+'</option>'; });
+    html += '<option value="__new__">+ Neu…</option>';
+    el.manualActivity.innerHTML = html;
+  }
+  el.manualActivity.addEventListener('change', () => {
+    if(el.manualActivity.value === '__new__'){
+      el.manualAddActivityRow.style.display = 'flex';
+      el.manualNewActivityInput.value = '';
+      el.manualNewActivityInput.focus();
+    } else {
+      el.manualAddActivityRow.style.display = 'none';
+    }
+  });
+  function confirmManualNewActivity(){
+    const name = el.manualNewActivityInput.value.trim();
+    if(!name) return;
+    const finalName = addActivityIfNew(name);
+    populateManualActivitySelect();
+    el.manualActivity.value = finalName;
+    el.manualNewActivityInput.value = '';
+    el.manualAddActivityRow.style.display = 'none';
+  }
+  el.manualNewActivityConfirm.addEventListener('click', confirmManualNewActivity);
+  el.manualNewActivityInput.addEventListener('keydown', (ev) => {
+    if(ev.key === 'Enter'){ ev.preventDefault(); confirmManualNewActivity(); }
+  });
+
+  el.headerAddBtn.addEventListener('click', () => {
+    editingEntryId = null;
+    el.manualModalTitle.textContent = 'Dienst nachtragen';
+    el.manualAddBtn.textContent = 'Eintragen';
+    el.manualDate.value = dayKey(new Date());
+    el.manualStart.value = '';
+    el.manualEnd.value = '';
+    populateManualActivitySelect();
+    el.manualAddActivityRow.style.display = 'none';
+    el.manualStatus.textContent = '';
+    el.manualModal.classList.add('open');
+  });
+  function openEditEntry(entry){
+    editingEntryId = entry.id;
+    el.manualModalTitle.textContent = 'Dienst bearbeiten';
+    el.manualAddBtn.textContent = 'Speichern';
+    const start = new Date(entry.start);
+    const end = new Date(entry.end);
+    el.manualDate.value = dayKey(start);
+    el.manualStart.value = pad(start.getHours())+':'+pad(start.getMinutes());
+    el.manualEnd.value = pad(end.getHours())+':'+pad(end.getMinutes());
+    populateManualActivitySelect();
+    el.manualAddActivityRow.style.display = 'none';
+    el.manualActivity.value = entry.activity || '';
+    el.manualStatus.textContent = '';
+    el.manualModal.classList.add('open');
+  }
+  el.manualCancelBtn.addEventListener('click', () => { editingEntryId = null; el.manualModal.classList.remove('open'); });
+  el.manualModal.addEventListener('click', (ev) => { if(ev.target === el.manualModal){ editingEntryId = null; el.manualModal.classList.remove('open'); } });
+
+  el.manualAddBtn.addEventListener('click', () => {
+    const dateStr = el.manualDate.value;
+    const startStr = el.manualStart.value;
+    const endStr = el.manualEnd.value;
+    if(!dateStr || !startStr || !endStr){
+      el.manualStatus.textContent = 'Bitte Datum, Start und Ende ausfüllen.';
+      return;
+    }
+    const start = new Date(dateStr+'T'+startStr+':00');
+    let end = new Date(dateStr+'T'+endStr+':00');
+    if(end.getTime() <= start.getTime()){
+      end = new Date(end.getTime() + 24*3600*1000); // Ende liegt nach Mitternacht -> Dienst geht über Tagesgrenze
+    }
+    const durationMs = applyRounding(end.getTime() - start.getTime());
+    let activityValue = el.manualActivity.value;
+    if(activityValue === '__new__'){
+      const typed = el.manualNewActivityInput.value.trim();
+      activityValue = typed ? addActivityIfNew(typed) : '';
+    }
+    if(editingEntryId){
+      const idx = entries.findIndex(e => e.id === editingEntryId);
+      if(idx !== -1){
+        const prev = entries[idx];
+        const keptPauseMs = prev.pauseMs || 0;
+        entries[idx] = {
+          id: editingEntryId,
+          start: start.toISOString(),
+          end: end.toISOString(),
+          durationMs: Math.max(0, durationMs - keptPauseMs),
+          pauseMs: keptPauseMs,
+          pauses: prev.pauses || [],
+          activity: activityValue || ''
+        };
+      }
+      editingEntryId = null;
+    } else {
+      entries.unshift({
+        id: 'e'+Date.now(),
+        start: start.toISOString(),
+        end: end.toISOString(),
+        durationMs,
+        pauseMs: 0,
+        pauses: [],
+        activity: activityValue || ''
+      });
+    }
+    persistLocalStorage();
+    renderAll();
+    el.manualModal.classList.remove('open');
+  });
+
+  function parseCsv(text){
+    const cleaned = text.replace(/^\uFEFF/, '');
+    const lines = cleaned.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    if(lines.length < 2) return [];
+
+    // Spaltenpositionen aus der Kopfzeile lesen, damit auch ältere Exporte passen
+    const headerCells = lines[0].split(';').map(h => h.trim().toLowerCase());
+    let activityIdx = headerCells.findIndex(h => h.startsWith('tätigkeit') || h.startsWith('taetigkeit') || h.startsWith('t\u00c3'));
+    let pauseIdx = headerCells.findIndex(h => h.startsWith('pause'));
+    if(activityIdx === -1) activityIdx = 4;
+
+    function parseDurationToMs(str){
+      if(!str) return 0;
+      const s = str.trim();
+      if(s.includes(':')){
+        const [h,m] = s.split(':').map(Number);
+        if(Number.isNaN(h) || Number.isNaN(m)) return 0;
+        return (h*60+m)*60000;
+      }
+      const dec = parseFloat(s.replace(',', '.'));
+      return Number.isNaN(dec) ? 0 : Math.round(dec*3600000);
+    }
+
+    const parsed = [];
+    lines.slice(1).forEach(line => {
+      const parts = line.split(';');
+      if(parts.length < 4) return;
+      const dateStr = parts[0], startStr = parts[1], endStr = parts[2];
+      const activityStr = parts[activityIdx] || '';
+      const dateParts = dateStr.split('.');
+      if(dateParts.length !== 3) return;
+      const day = parseInt(dateParts[0], 10), month = parseInt(dateParts[1], 10), year = parseInt(dateParts[2], 10);
+      const startParts = startStr.split(':').map(Number);
+      const endParts = endStr.split(':').map(Number);
+      if([day,month,year,...startParts,...endParts].some(n => Number.isNaN(n))) return;
+      const start = new Date(year, month-1, day, startParts[0], startParts[1], 0);
+      let end = new Date(year, month-1, day, endParts[0], endParts[1], 0);
+      if(end.getTime() <= start.getTime()){ end = new Date(end.getTime() + 24*3600*1000); }
+      const pauseMs = pauseIdx !== -1 ? parseDurationToMs(parts[pauseIdx]) : 0;
+      parsed.push({
+        id: 'e'+start.getTime()+'_'+Math.random().toString(36).slice(2,7),
+        start: start.toISOString(),
+        end: end.toISOString(),
+        durationMs: Math.max(0, (end.getTime() - start.getTime()) - pauseMs),
+        pauseMs: pauseMs,
+        pauses: [],
+        activity: activityStr.trim()
+      });
+    });
+    return parsed;
+  }
+
+  function importEntries(newEntries){
+    const existingKeys = new Set(entries.map(e => e.start+'|'+e.end));
+    let added = 0;
+    newEntries.forEach(e => {
+      const key = e.start+'|'+e.end;
+      if(existingKeys.has(key)) return;
+      if(e.activity){ e.activity = addActivityIfNew(e.activity); }
+      entries.push(e);
+      existingKeys.add(key);
+      added++;
+    });
+    if(added > 0){ persistLocalStorage(); renderAll(); }
+    return added;
+  }
+
+  el.headerFileBtn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    el.fileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', () => el.fileMenu.classList.remove('open'));
+  el.fileMenuExport.addEventListener('click', () => {
+    el.fileMenu.classList.remove('open');
+    openExportModal();
+  });
+  el.fileMenuImport.addEventListener('click', () => {
+    el.fileMenu.classList.remove('open');
+    el.importFileInput.click();
+  });
+  el.importFileInput.addEventListener('change', async (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const parsed = parseCsv(text);
+      if(parsed.length === 0){
+        el.importStatus.textContent = 'Keine gültigen Zeilen in der Datei gefunden.';
+      } else {
+        const added = importEntries(parsed);
+        el.importStatus.textContent = added+' von '+parsed.length+' Einträgen importiert (Duplikate übersprungen).';
+      }
+    }catch(e){
+      el.importStatus.textContent = 'Datei konnte nicht gelesen werden.';
+    }
+    ev.target.value = '';
+  });
+
+  // --- Einstellungen ---
+  let resetArmed = false;
+  let resetTimeout = null;
+
+  el.headerSettingsBtn.addEventListener('click', () => {
+    el.setRounding.value = String(settings.roundingMin);
+    el.setCsvFormat.value = settings.csvFormat;
+    el.setMonthTarget.value = String(settings.monthTargetHours);
+    el.settingsStatus.textContent = '';
+    resetArmed = false;
+    el.settingsResetBtn.textContent = 'Alle Daten löschen';
+    el.settingsModal.classList.add('open');
+  });
+  function closeSettings(){
+    resetArmed = false;
+    clearTimeout(resetTimeout);
+    el.settingsResetBtn.textContent = 'Alle Daten löschen';
+    el.settingsModal.classList.remove('open');
+  }
+  el.settingsCloseBtn.addEventListener('click', closeSettings);
+  el.settingsModal.addEventListener('click', (ev) => { if(ev.target === el.settingsModal) closeSettings(); });
+  el.settingsSaveBtn.addEventListener('click', () => {
+    settings.roundingMin = parseInt(el.setRounding.value, 10) || 0;
+    settings.csvFormat = el.setCsvFormat.value === 'decimal' ? 'decimal' : 'hm';
+    const target = parseInt(el.setMonthTarget.value, 10);
+    settings.monthTargetHours = (Number.isFinite(target) && target > 0) ? target : 0;
+    persistLocalStorage();
+    renderAll();
+    closeSettings();
+  });
+  el.settingsResetBtn.addEventListener('click', () => {
+    if(!resetArmed){
+      resetArmed = true;
+      el.settingsResetBtn.textContent = 'Wirklich alles löschen?';
+      clearTimeout(resetTimeout);
+      resetTimeout = setTimeout(() => {
+        resetArmed = false;
+        el.settingsResetBtn.textContent = 'Alle Daten löschen';
+      }, 4000);
+      return;
+    }
+    entries = [];
+    activities = [];
+    activeSession = null;
+    currentActivity = null;
+    stopTicking();
+    persistLocalStorage();
+    renderAll();
+    closeSettings();
+  });
+
+  el.toggleBtn.addEventListener('click', toggleTracking);
+
+  el.syncSignInBtn.addEventListener('click', async () => {
+    if(!fbAuth){ setSyncStatus('Cloud-Sync lädt noch — kurz warten und erneut versuchen.'); return; }
+    const email = el.syncEmail.value.trim(), pw = el.syncPassword.value;
+    if(!email || !pw){ setSyncStatus('Bitte E-Mail und Passwort eingeben.'); return; }
+    setSyncStatus('Anmelden…');
+    try{ await fb_signIn(fbAuth, email, pw); }
+    catch(e){ setSyncStatus(translateAuthError(e.code)); }
+  });
+  el.syncSignUpBtn.addEventListener('click', async () => {
+    if(!fbAuth){ setSyncStatus('Cloud-Sync lädt noch — kurz warten und erneut versuchen.'); return; }
+    const email = el.syncEmail.value.trim(), pw = el.syncPassword.value;
+    if(!email || !pw){ setSyncStatus('Bitte E-Mail und Passwort eingeben.'); return; }
+    setSyncStatus('Registrieren…');
+    try{ await fb_createUser(fbAuth, email, pw); }
+    catch(e){ setSyncStatus(translateAuthError(e.code)); }
+  });
+  el.syncSignOutBtn.addEventListener('click', async () => {
+    if(!fbAuth) return;
+    try{ await fb_signOut(fbAuth); setSyncStatus(''); }catch(e){ /* ignore */ }
+  });
+  loadFirebase();
+
+  (function init(){
+    localStorageOk = detectLocalStorage();
+    if(localStorageOk){ loadFromLocalStorage(); }
+    else{ el.storageNote.style.display = 'block'; }
+    currentActivity = activeSession ? (activeSession.activity || null) : null;
+    el.loading.style.display = 'none';
+    el.app.style.display = 'flex';
+    renderAll();
+    if(activeSession) startTicking();
+  })();
+})();
+</script>
+</body>
+</html>
