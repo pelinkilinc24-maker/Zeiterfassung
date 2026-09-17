@@ -369,6 +369,16 @@
         <input type="time" id="manualEnd">
       </div>
     </div>
+    <div class="field-row two-col">
+      <div>
+        <label for="manualPauseStart">Pause von</label>
+        <input type="time" id="manualPauseStart">
+      </div>
+      <div>
+        <label for="manualPauseEnd">Pause bis</label>
+        <input type="time" id="manualPauseEnd">
+      </div>
+    </div>
     <div class="field-row">
       <label for="manualActivity">Tätigkeit</label>
       <select id="manualActivity"></select>
@@ -623,6 +633,8 @@
     manualDate: document.getElementById('manualDate'),
     manualStart: document.getElementById('manualStart'),
     manualEnd: document.getElementById('manualEnd'),
+    manualPauseStart: document.getElementById('manualPauseStart'),
+    manualPauseEnd: document.getElementById('manualPauseEnd'),
     manualActivity: document.getElementById('manualActivity'),
     manualAddActivityRow: document.getElementById('manualAddActivityRow'),
     manualNewActivityInput: document.getElementById('manualNewActivityInput'),
@@ -1194,6 +1206,8 @@
     el.manualDate.value = dayKey(new Date());
     el.manualStart.value = '';
     el.manualEnd.value = '';
+    el.manualPauseStart.value = '';
+    el.manualPauseEnd.value = '';
     populateManualActivitySelect();
     el.manualAddActivityRow.style.display = 'none';
     el.manualStatus.textContent = '';
@@ -1208,6 +1222,17 @@
     el.manualDate.value = dayKey(start);
     el.manualStart.value = pad(start.getHours())+':'+pad(start.getMinutes());
     el.manualEnd.value = pad(end.getHours())+':'+pad(end.getMinutes());
+    if(entry.pauses && entry.pauses.length === 1){
+      const p = entry.pauses[0];
+      const pf = new Date(p.from), pt = new Date(p.to);
+      el.manualPauseStart.value = pad(pf.getHours())+':'+pad(pf.getMinutes());
+      el.manualPauseEnd.value = pad(pt.getHours())+':'+pad(pt.getMinutes());
+    } else {
+      // Kein oder mehrere Pausen (z.B. aus dem laufenden Timer) - Felder leer lassen;
+      // bleiben sie leer, bleiben die bestehenden Pausendaten beim Speichern unverändert.
+      el.manualPauseStart.value = '';
+      el.manualPauseEnd.value = '';
+    }
     populateManualActivitySelect();
     el.manualAddActivityRow.style.display = 'none';
     el.manualActivity.value = entry.activity || '';
@@ -1221,33 +1246,90 @@
     const dateStr = el.manualDate.value;
     const startStr = el.manualStart.value;
     const endStr = el.manualEnd.value;
-    if(!dateStr || !startStr || !endStr){
-      el.manualStatus.textContent = 'Bitte Datum, Start und Ende ausfüllen.';
+
+    if(!dateStr || !startStr){
+      el.manualStatus.textContent = 'Bitte mindestens Datum und Start ausfüllen.';
       return;
     }
-    const start = new Date(dateStr+'T'+startStr+':00');
-    let end = new Date(dateStr+'T'+endStr+':00');
-    if(end.getTime() <= start.getTime()){
-      end = new Date(end.getTime() + 24*3600*1000); // Ende liegt nach Mitternacht -> Dienst geht über Tagesgrenze
-    }
-    const durationMs = applyRounding(end.getTime() - start.getTime());
+
     let activityValue = el.manualActivity.value;
     if(activityValue === '__new__'){
       const typed = el.manualNewActivityInput.value.trim();
       activityValue = typed ? addActivityIfNew(typed) : '';
     }
+
+    // Kein Ende angegeben, neuer Eintrag (kein Bearbeiten) -> als laufenden Dienst mit
+    // nachgetragener Startzeit beginnen (z.B. wenn man zu spät eingeloggt hat, aber schon arbeitet).
+    if(!endStr && !editingEntryId){
+      if(activeSession){
+        el.manualStatus.textContent = 'Es läuft bereits ein Dienst — den bitte erst beenden.';
+        return;
+      }
+      const start = new Date(dateStr+'T'+startStr+':00');
+      activeSession = { startTime: start.toISOString(), activity: activityValue || null, pausedAt: null, pauses: [] };
+      currentActivity = activityValue || null;
+      startTicking();
+      persistLocalStorage();
+      renderAll();
+      el.manualModal.classList.remove('open');
+      return;
+    }
+
+    if(!endStr){
+      el.manualStatus.textContent = 'Bitte auch ein Ende eintragen (oder beim Neuanlegen leer lassen, um den Dienst laufen zu lassen).';
+      return;
+    }
+
+    const start = new Date(dateStr+'T'+startStr+':00');
+    let end = new Date(dateStr+'T'+endStr+':00');
+    if(end.getTime() <= start.getTime()){
+      end = new Date(end.getTime() + 24*3600*1000); // Ende liegt nach Mitternacht -> Dienst geht über Tagesgrenze
+    }
+
+    const pauseStartStr = el.manualPauseStart.value;
+    const pauseEndStr = el.manualPauseEnd.value;
+    let pauses = [];
+    let pauseMs = 0;
+
+    if(pauseStartStr && pauseEndStr){
+      let pStart = new Date(dateStr+'T'+pauseStartStr+':00');
+      let pEnd = new Date(dateStr+'T'+pauseEndStr+':00');
+      if(pStart.getTime() < start.getTime()){
+        pStart = new Date(pStart.getTime() + 24*3600*1000);
+        pEnd = new Date(pEnd.getTime() + 24*3600*1000);
+      }
+      if(pEnd.getTime() <= pStart.getTime()){
+        pEnd = new Date(pEnd.getTime() + 24*3600*1000);
+      }
+      if(pStart.getTime() < start.getTime() || pEnd.getTime() > end.getTime()){
+        el.manualStatus.textContent = 'Die Pause muss innerhalb von Start und Ende liegen.';
+        return;
+      }
+      pauses = [{ from: pStart.toISOString(), to: pEnd.toISOString() }];
+      pauseMs = pEnd.getTime() - pStart.getTime();
+    } else if(pauseStartStr || pauseEndStr){
+      el.manualStatus.textContent = 'Bitte Pause-Start und -Ende beide ausfüllen oder beide leer lassen.';
+      return;
+    } else if(editingEntryId){
+      // Beide Pausenfelder leer gelassen -> bestehende (ggf. mehrere) Pausen unverändert behalten.
+      const prevForPause = entries.find(e => e.id === editingEntryId);
+      if(prevForPause && prevForPause.pauses && prevForPause.pauses.length){
+        pauses = prevForPause.pauses;
+        pauseMs = prevForPause.pauseMs || 0;
+      }
+    }
+
+    const durationMs = applyRounding(Math.max(0, (end.getTime() - start.getTime()) - pauseMs));
     if(editingEntryId){
       const idx = entries.findIndex(e => e.id === editingEntryId);
       if(idx !== -1){
-        const prev = entries[idx];
-        const keptPauseMs = prev.pauseMs || 0;
         entries[idx] = {
           id: editingEntryId,
           start: start.toISOString(),
           end: end.toISOString(),
-          durationMs: Math.max(0, durationMs - keptPauseMs),
-          pauseMs: keptPauseMs,
-          pauses: prev.pauses || [],
+          durationMs,
+          pauseMs,
+          pauses,
           activity: activityValue || ''
         };
       }
@@ -1258,8 +1340,8 @@
         start: start.toISOString(),
         end: end.toISOString(),
         durationMs,
-        pauseMs: 0,
-        pauses: [],
+        pauseMs,
+        pauses,
         activity: activityValue || ''
       });
     }
