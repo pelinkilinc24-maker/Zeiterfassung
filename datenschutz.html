@@ -1,117 +1,120 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#FFFFFF">
 <title>Datenschutzerklärung – Zeiterfassung</title>
 <style>
-  :root{
-    --text:#1A1E1B; --text-muted:#6B7570; --accent:#3B4A40;
-    --border:#DDE1DC; --bg-subtle:#F7F8F6;
+  :root {
+    --bg: #ffffff;
+    --text: #1f2328;
+    --muted: #59636e;
+    --line: #d1d9e0;
+    --link: #0b57d0;
+    --head-bg: #f3f5f8;
   }
-  *{ box-sizing:border-box; }
-  html,body{
-    margin:0; padding:0; background:#FFFFFF; color:var(--text);
-    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.65;
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121417;
+      --text: #e6e8eb;
+      --muted: #9aa4af;
+      --line: #2e343b;
+      --link: #8ab4f8;
+      --head-bg: #1b1f24;
+    }
   }
-  .wrap{ max-width:640px; margin:0 auto; padding:20px 20px 60px; }
-
-  .backlink{
-    display:inline-block; font-size:13px; color:var(--text-muted); text-decoration:none;
-    margin-bottom:22px; padding:4px 0;
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    font-size: 1rem;
   }
-  .backlink:hover{ color:var(--accent); }
-
-  h1{ font-size:21px; font-weight:600; margin:0 0 4px; color:var(--text); letter-spacing:-0.01em; }
-  .updated{ font-size:12.5px; color:var(--text-muted); margin-bottom:22px; }
-
-  .devnote{
-    font-size:12px; color:var(--text-muted); font-style:italic;
-    border-left:2px solid var(--border); padding-left:10px; margin:0 0 30px;
+  main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
   }
-
-  h2{ font-size:14.5px; font-weight:600; margin:28px 0 8px; color:var(--text); }
-  h3{ font-size:13.5px; font-weight:600; margin:18px 0 6px; color:var(--accent); }
-  p, li{ font-size:13.5px; color:var(--text); }
-  ul{ padding-left:19px; margin:8px 0; }
-  li{ margin-bottom:5px; }
-  a{ color:var(--accent); }
-
-  .addr{
-    font-size:13.5px; padding:12px 0 12px 14px; margin:10px 0 4px;
-    border-left:2px solid var(--border); color:var(--text);
-  }
-  .addr .line{ display:block; }
-  .addr .email{ margin-top:8px; display:block; color:var(--text-muted); font-size:13px; }
-
-  table{ width:100%; border-collapse:collapse; margin:10px 0; font-size:12.5px; }
-  th, td{ text-align:left; padding:7px 6px; border-bottom:1px solid var(--border); vertical-align:top; }
-  th{ color:var(--text-muted); font-weight:600; }
-
-  hr.rule{ border:none; border-top:1px solid var(--border); margin:34px 0 18px; }
-  footer{ font-size:11.5px; color:var(--text-muted); line-height:1.55; }
+  a { color: var(--link); }
+  .back { display: inline-block; margin-bottom: 1.5rem; text-decoration: none; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 0.4rem; }
+  h2 { font-size: 1.25rem; margin: 2.2rem 0 0.5rem; }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 0.4rem; }
+  .meta { color: var(--muted); margin: 0 0 1.5rem; }
+  ul, ol { padding-left: 1.3rem; }
+  li { margin: 0.25rem 0; }
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 30rem; }
+  th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; text-align: left; vertical-align: top; }
+  th { background: var(--head-bg); }
+  :target { scroll-margin-top: 1rem; }
 </style>
 </head>
 <body>
-<div class="wrap">
+<main>
 
-<a class="backlink" href="./">← Zur App</a>
+<a class="back" href="https://pelinkilinc24-maker.github.io/Zeiterfassung/">← Zur App</a>
 
 <h1>Datenschutzerklärung</h1>
-<div class="updated">App „Zeiterfassung“ · Stand: 17. September 2026</div>
+<p class="meta">App „Zeiterfassung“ · Stand: 19. September 2026</p>
 
-<p class="devnote">Hinweis: Diese Erklärung beschreibt die tatsächlichen Datenflüsse der App und enthält reale Kontaktdaten. Vor einer Veröffentlichung sollte sie dennoch von einer fachkundigen Person geprüft werden (siehe Fußzeile).</p>
-
-<h2>1. Verantwortlicher</h2>
+<h2 id="verantwortlicher">1. Verantwortlicher</h2>
 <p>Verantwortlich für die Datenverarbeitung in dieser App im Sinne der Datenschutz-Grundverordnung ist Pelin Nur Mösch, Johannesweg 42, 53937 Schleiden, Deutschland, erreichbar unter <a href="mailto:pelin.kilinc24@gmail.com">pelin.kilinc24@gmail.com</a>.</p>
 
-<h2>2. Grundsatz</h2>
+<h2 id="grundsatz">2. Grundsatz</h2>
 <p>Diese App wurde so gestaltet, dass so wenig personenbezogene Daten wie möglich verarbeitet werden. Die App enthält <strong>keine Werbung</strong>, <strong>kein Tracking</strong> und <strong>keine Analyse-Werkzeuge</strong>. Es werden keine Daten an Dritte verkauft oder zu Werbezwecken weitergegeben.</p>
 
-<h2>3. Nutzung ohne Konto (Standard)</h2>
-<p>Die App ist ohne Registrierung vollständig nutzbar. In diesem Fall werden alle erfassten Daten <strong>ausschließlich lokal auf deinem Gerät</strong> im Speicher des Browsers (localStorage) abgelegt. Sie werden nicht an uns oder an Dritte übertragen.</p>
+<h2 id="ohne-konto">3. Nutzung ohne Konto (Standard)</h2>
+<p>Die App ist ohne Registrierung vollständig nutzbar. In diesem Fall werden alle erfassten Daten <strong>ausschließlich lokal auf deinem Gerät</strong> im lokalen Speicher der App (localStorage) abgelegt. Sie werden nicht an uns oder an Dritte übertragen.</p>
 <p>Lokal gespeichert werden:</p>
 <ul>
   <li>erfasste Dienstzeiten (Datum, Start, Ende, Dauer, Pausen)</li>
   <li>selbst angelegte Tätigkeitsbezeichnungen</li>
   <li>App-Einstellungen (Rundung, Exportformat, Monatssoll)</li>
 </ul>
-<p>Diese Daten kannst du jederzeit über die Einstellungen der App („Alle Daten löschen“) oder durch Löschen der Browserdaten vollständig entfernen.</p>
+<p>Diese Daten kannst du jederzeit über die Einstellungen der App („Alle Daten löschen“) oder durch Löschen der App-Daten auf deinem Gerät vollständig entfernen.</p>
 
-<h2>4. Optionale Cloud-Synchronisierung</h2>
+<h2 id="cloud">4. Optionale Cloud-Synchronisierung</h2>
 <p>Wenn du die Cloud-Synchronisierung nutzen möchtest, kannst du freiwillig ein Konto anlegen. Erst dann werden Daten an einen Server übertragen. Ohne Registrierung findet keine Übertragung statt.</p>
 
 <h3>4.1 Welche Daten verarbeitet werden</h3>
+<div class="table-wrap">
 <table>
-  <tr><th>Daten</th><th>Zweck</th></tr>
-  <tr><td>E-Mail-Adresse und Passwort</td><td>Anmeldung und Zuordnung deiner Daten zu deinem Konto</td></tr>
-  <tr><td>Erfasste Dienstzeiten und Pausen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
-  <tr><td>Tätigkeitsbezeichnungen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
-  <tr><td>App-Einstellungen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
+  <thead>
+    <tr><th>Daten</th><th>Zweck</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>E-Mail-Adresse und Passwort</td><td>Anmeldung und Zuordnung deiner Daten zu deinem Konto</td></tr>
+    <tr><td>Erfasste Dienstzeiten und Pausen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
+    <tr><td>Tätigkeitsbezeichnungen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
+    <tr><td>App-Einstellungen</td><td>Synchronisierung zwischen deinen Geräten</td></tr>
+  </tbody>
 </table>
-<p>Das Passwort wird nicht im Klartext gespeichert, sondern ausschließlich in verschlüsselter Form beim Dienstanbieter (siehe 4.2) hinterlegt. Wir haben keinen Zugriff auf dein Passwort.</p>
+</div>
+<p>Das Passwort wird nicht im Klartext gespeichert, sondern ausschließlich in verschlüsselter Form beim Dienstanbieter (siehe 4.2) hinterlegt. Wir haben keinen Zugriff auf dein Passwort. Die Übertragung der Daten erfolgt verschlüsselt (HTTPS).</p>
 
 <h3>4.2 Auftragsverarbeiter: Google Firebase</h3>
 <p>Für Anmeldung und Speicherung wird <strong>Firebase Authentication</strong> und <strong>Cloud Firestore</strong> der Google Ireland Limited (Gordon House, Barrow Street, Dublin 4, Irland) eingesetzt.</p>
 <p>Die Zeiterfassungsdaten werden in Rechenzentren innerhalb der <strong>Europäischen Union</strong> gespeichert (Region europe-west). Bei der Anmeldung und beim Betrieb der Dienste kann es technisch bedingt zu einer Verarbeitung in Drittländern, insbesondere den USA, kommen. Google stützt solche Übermittlungen auf das EU-US Data Privacy Framework sowie auf Standardvertragsklauseln.</p>
-<p>Weitere Informationen: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a> und <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></p>
+<p>Weitere Informationen: <a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a> und <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></p>
 
 <h3>4.3 Technisch notwendige Verbindungen</h3>
 <p>Schriftarten sind fest in die App eingebettet und werden nicht von Google-Servern nachgeladen. Beim Laden der App werden lediglich Programmbibliotheken für die Cloud-Synchronisierung von Google-Servern (gstatic.com) abgerufen — dies geschieht ausschließlich, wenn die Cloud-Funktion genutzt wird, und ist für deren Funktion technisch erforderlich. Dabei wird technisch bedingt deine IP-Adresse an Google übertragen.</p>
 
-<h2>5. Rechtsgrundlagen</h2>
+<h2 id="rechtsgrundlagen">5. Rechtsgrundlagen</h2>
 <ul>
   <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> (Vertragserfüllung): Bereitstellung der Konto- und Synchronisierungsfunktion, die du aktiv angefordert hast.</li>
   <li><strong>Art. 6 Abs. 1 lit. a DSGVO</strong> (Einwilligung): Die Registrierung erfolgt freiwillig; durch Löschen des Kontos kannst du die Einwilligung jederzeit widerrufen.</li>
   <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> (berechtigtes Interesse): technisch sicherer und funktionsfähiger Betrieb der App.</li>
 </ul>
 
-<h2>6. Speicherdauer</h2>
-<p>Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschen lässt, werden die zugehörigen Daten gelöscht. Lokal auf dem Gerät gespeicherte Daten bleiben so lange erhalten, bis du sie selbst löschst oder die Browserdaten der App entfernst.</p>
+<h2 id="speicherdauer">6. Speicherdauer</h2>
+<p>Deine Daten werden gespeichert, solange dein Konto besteht. Wenn du dein Konto löschen lässt, werden die zugehörigen Daten gelöscht. Lokal auf dem Gerät gespeicherte Daten bleiben so lange erhalten, bis du sie selbst löschst oder die App-Daten auf deinem Gerät entfernst.</p>
 
-<h2>7. Deine Rechte</h2>
+<h2 id="rechte">7. Deine Rechte</h2>
 <p>Dir stehen nach der DSGVO folgende Rechte zu:</p>
 <ul>
   <li>Auskunft über die zu dir gespeicherten Daten (Art. 15)</li>
@@ -124,28 +127,32 @@
 </ul>
 <p>Zur Ausübung dieser Rechte genügt eine Nachricht an die unter Punkt 1 genannte E-Mail-Adresse.</p>
 
-<h2>8. Konto und Daten löschen</h2>
-<p>Du kannst jederzeit:</p>
-<ul>
-  <li>alle lokalen Daten über die App-Einstellungen löschen („Alle Daten löschen“),</li>
-  <li>dein Konto samt aller Cloud-Daten direkt und sofort in der App löschen, über die Einstellungen unter „Cloud-Sync“ mit dem Button „Konto und Cloud-Daten löschen“,</li>
-  <li>alternativ die Löschung per E-Mail an die unter Punkt 1 genannte Adresse verlangen, falls der Zugriff auf dein Konto nicht mehr möglich ist.</li>
-</ul>
+<h2 id="loeschen">8. Konto und Daten löschen</h2>
+<p>So löschst du dein Konto in der App „Zeiterfassung“ und die dazugehörigen Daten:</p>
 
-<h2>9. Beschwerderecht</h2>
+<h3>Löschung in der App (sofort)</h3>
+<ol>
+  <li>Öffne die App und gehe zu den <strong>Einstellungen</strong>.</li>
+  <li>Öffne den Bereich <strong>Cloud-Sync</strong>.</li>
+  <li>Tippe auf <strong>„Konto und Cloud-Daten löschen“</strong> und bestätige.</li>
+</ol>
+<p>Dabei werden dein Konto (E-Mail-Adresse und Zugangsdaten) sowie alle in der Cloud gespeicherten Dienstzeiten, Pausen, Tätigkeitsbezeichnungen und Einstellungen gelöscht.</p>
+
+<h3>Löschung per E-Mail</h3>
+<p>Falls du keinen Zugriff mehr auf dein Konto hast, schreibe eine E-Mail mit dem Betreff „Konto löschen – Zeiterfassung“ an <a href="mailto:pelin.kilinc24@gmail.com">pelin.kilinc24@gmail.com</a>, und zwar von der E-Mail-Adresse, mit der du dein Konto angelegt hast. Wir löschen dein Konto und alle zugehörigen Cloud-Daten.</p>
+
+<h3>Lokale Daten</h3>
+<p>Auf deinem Gerät gespeicherte Daten löschst du über die Einstellungen der App („Alle Daten löschen“) oder durch Löschen der App-Daten auf deinem Gerät. Bei einer Nutzung ohne Konto liegen keine Daten bei uns oder bei Dritten.</p>
+
+<h2 id="beschwerde">9. Beschwerderecht</h2>
 <p>Du hast das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Zuständig ist in der Regel die Behörde deines Wohnsitzlandes. Für Nordrhein-Westfalen: Landesbeauftragte für Datenschutz und Informationsfreiheit NRW, Kavalleriestraße 2–4, 40213 Düsseldorf.</p>
 
-<h2>10. Kinder</h2>
+<h2 id="kinder">10. Kinder</h2>
 <p>Die App richtet sich nicht an Kinder unter 16 Jahren. Es werden nicht wissentlich Daten von Kindern erhoben.</p>
 
-<h2>11. Änderungen</h2>
+<h2 id="aenderungen">11. Änderungen</h2>
 <p>Diese Datenschutzerklärung kann angepasst werden, wenn sich die App oder die Rechtslage ändert. Die jeweils aktuelle Fassung ist unter dieser Adresse abrufbar.</p>
 
-<hr class="rule">
-<footer>
-  Diese Datenschutzerklärung wurde als Vorlage erstellt und beschreibt die tatsächlichen Datenflüsse der App. Sie ersetzt keine Rechtsberatung. Vor einer Veröffentlichung im Google Play Store sollte sie von einer fachkundigen Person geprüft werden.
-</footer>
-
-</div>
+</main>
 </body>
 </html>
