@@ -452,12 +452,16 @@
   let fb_createUser, fb_signIn, fb_signOut, fb_onAuthStateChanged, fb_doc, fb_getDoc, fb_setDoc, fb_deleteDoc, fb_deleteUser;
 
   async function loadFirebase(){
+    console.log('FB: Laden startet');
     try{
-      const [appMod, authMod, fsMod] = await Promise.all([
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
-      ]);
+      const base = "https://www.gstatic.com/firebasejs/12.19.0/";
+      fetch(base + "firebase-app.js").then(r => console.log('FB: fetch Status ' + r.status)).catch(e => console.log('FB: fetch Fehler ' + e));
+      const appMod = await import(base + "firebase-app.js");
+      console.log('FB: app geladen');
+      const authMod = await import(base + "firebase-auth.js");
+      console.log('FB: auth geladen');
+      const fsMod = await import(base + "firebase-firestore.js");
+      console.log('FB: firestore geladen');
       const fbApp = appMod.initializeApp(firebaseConfig);
       fbAuth = authMod.getAuth(fbApp);
       fbDb = fsMod.getFirestore(fbApp);
@@ -478,6 +482,7 @@
         }
       });
     }catch(e){
+    console.log('FB: Fehler ' + (e && e.message));
       setSyncStatus('Cloud-Sync momentan nicht erreichbar — App funktioniert lokal weiter.');
     }
   }
@@ -1119,6 +1124,7 @@
   }
 
   function triggerDownload(filename, mimeType, content){
+    if(window.AndroidBridge){ window.AndroidBridge.saveFile(filename, content); return; }
     const blob = new Blob([content], {type:mimeType});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1141,6 +1147,11 @@
   el.exportModal.addEventListener('click', (ev) => { if(ev.target === el.exportModal) el.exportModal.classList.remove('open'); });
   el.copyBtn.addEventListener('click', async () => {
     try{
+      if(window.AndroidBridge){
+        window.AndroidBridge.copyText(el.exportTextarea.value);
+        el.exportStatus.textContent = 'In die Zwischenablage kopiert.';
+        return;
+      }
       await navigator.clipboard.writeText(el.exportTextarea.value);
       el.exportStatus.textContent = 'In die Zwischenablage kopiert.';
     }catch(e){
@@ -1160,7 +1171,7 @@
   el.downloadBtn.addEventListener('click', () => {
     try{
       triggerDownload(exportFilename, 'text/csv;charset=utf-8;', '\uFEFF' + el.exportTextarea.value);
-      el.exportStatus.textContent = 'Download gestartet — falls nichts passiert, „Teilen“ oder „Kopieren“ nutzen.';
+      el.exportStatus.textContent = window.AndroidBridge ? 'Speicherort auswählen…' : 'Download gestartet — falls nichts passiert, „Teilen“ oder „Kopieren“ nutzen.';
     }catch(e){
       el.exportStatus.textContent = 'Download nicht möglich — bitte „Teilen“ oder „Kopieren“ nutzen.';
     }
