@@ -157,6 +157,24 @@
   .month-stat-row .label{ color:var(--text-muted); }
   .month-stat-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
 
+  .summary-row{ display:flex; justify-content:space-between; align-items:baseline; margin:4px 4px; font-size:14px; }
+  .summary-row .label{ color:var(--text-muted); }
+  .summary-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .target-bar{ height:5px; border-radius:999px; background:var(--surface-alt); margin:4px 4px 10px; overflow:hidden; }
+  .target-bar > div{ height:100%; width:0; background:var(--green-700); border-radius:inherit; }
+  .target-bar.done > div{ background:var(--green-500); }
+  @media (prefers-reduced-motion: no-preference){ .target-bar > div{ transition:width .4s ease; } }
+  .link-btn{
+    display:block; margin:0 4px 12px; padding:4px 0; background:none; border:none; cursor:pointer;
+    font-family:inherit; font-size:13px; color:var(--green-700); text-decoration:underline; text-align:left;
+  }
+  #targetSummary{ margin-bottom:16px; }
+  .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:14px; font-weight:600; color:var(--green-900); }
+  h2 + .settings-section{ margin-top:6px; padding-top:0; border-top:none; }
+  .target-fields{ display:flex; gap:8px; }
+  .target-fields > *{ flex:1; min-width:0; }
+  .field-hint{ font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.4; }
+
   .history-header{ display:flex; justify-content:space-between; align-items:baseline; margin:8px 4px 6px; }
   .history-header h2{ margin:0; font-size:14px; font-weight:600; color:var(--text); }
   hr.divider{ border:none; border-top:1px solid var(--border); margin:0 0 8px; }
@@ -274,6 +292,13 @@
     <span class="value" id="todayTotal">0,0 Std.</span>
   </div>
 
+  <div id="targetSummary" style="display:none;">
+    <div class="summary-row"><span class="label" id="targetPeriodLabel">Diesen Monat</span><span class="value" id="targetProgress">0:00 / 0:00 Std.</span></div>
+    <div class="target-bar" id="targetBar"><div id="targetBarFill"></div></div>
+    <div class="summary-row" id="balanceRow"><span class="label" id="balanceLabel">Stundenkonto</span><span class="value" id="balanceValue">+0:00 Std.</span></div>
+  </div>
+  <button class="link-btn" id="targetSetupBtn" style="display:none;">Sollstunden festlegen für Plus-/Minusstunden</button>
+
   <div class="history-header"><h2>Verlauf</h2></div>
   <hr class="divider">
 
@@ -286,6 +311,32 @@
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>Einstellungen</h2>
+
+    <h3 class="settings-section">Plus-/Minusstunden</h3>
+    <div class="field-row">
+      <label for="setTargetHours">Sollstunden</label>
+      <div class="target-fields">
+        <input type="text" id="setTargetHours" inputmode="decimal" placeholder="z. B. 40">
+        <select id="setTargetUnit" aria-label="Zeitraum der Sollstunden">
+          <option value="week">pro Woche</option>
+          <option value="month">pro Monat</option>
+        </select>
+      </div>
+      <div class="field-hint">Leer lassen, wenn du keine Plus- und Minusstunden brauchst.</div>
+    </div>
+    <div id="balanceFields">
+      <div class="field-row">
+        <label for="setBalanceSince">Stundenkonto ab</label>
+        <input type="date" id="setBalanceSince">
+      </div>
+      <div class="field-row">
+        <label for="setBalanceStart">Bisherige Plus-/Minusstunden</label>
+        <input type="text" id="setBalanceStart" placeholder="z. B. 12 oder -3:30">
+        <div class="field-hint">Dein Stand vor dem Startdatum, z. B. aus der Lohnabrechnung. Leer lassen, um bei 0 zu starten.</div>
+      </div>
+    </div>
+
+    <h3 class="settings-section">Erfassung und Export</h3>
     <div class="field-row">
       <label for="setRounding">Dienstzeit runden auf</label>
       <select id="setRounding">
@@ -301,13 +352,10 @@
         <option value="decimal">Dezimal (8,50)</option>
       </select>
     </div>
-    <div class="field-row">
-      <label for="setMonthTarget">Monatssoll in Stunden (0 = aus)</label>
-      <input type="number" id="setMonthTarget" min="0" max="400" step="1" inputmode="numeric">
-    </div>
 
+    <h3 class="settings-section">Cloud-Sync</h3>
     <div class="field-row">
-      <label>Cloud-Sync</label>
+      <div class="field-hint" style="margin:0 0 8px;">Optional: Sichere deine Zeiten und nutze sie auf mehreren Geräten.</div>
       <div id="syncSignedOut">
         <input type="email" id="syncEmail" placeholder="E-Mail" autocomplete="username">
         <input type="password" id="syncPassword" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password" style="margin-top:8px;">
@@ -351,7 +399,8 @@
     <div class="month-stat-row"><span class="label">Gesamt</span><span class="value" id="overviewTotal">0:00 Std.</span></div>
     <div class="month-stat-row"><span class="label">Ø pro Dienst</span><span class="value" id="overviewAvg">–</span></div>
     <div class="month-stat-row" id="overviewTargetRow" style="display:none;"><span class="label">Soll</span><span class="value" id="overviewTarget">–</span></div>
-    <div class="month-stat-row" id="overviewDiffRow" style="display:none;"><span class="label">Differenz</span><span class="value" id="overviewDiff">–</span></div>
+    <div class="month-stat-row" id="overviewDiffRow" style="display:none;"><span class="label" id="overviewDiffLabel">Plus/Minus</span><span class="value" id="overviewDiff">–</span></div>
+    <button class="link-btn" id="overviewTargetSetupBtn" style="display:none; margin-top:8px;">Sollstunden festlegen für Plus-/Minusstunden</button>
     <div class="modal-actions">
       <button class="secondary" id="overviewCloseBtn">Schließen</button>
       <button class="primary" id="overviewCsvBtn">Als CSV</button>
@@ -597,7 +646,22 @@
     settingsModal: document.getElementById('settingsModal'),
     setRounding: document.getElementById('setRounding'),
     setCsvFormat: document.getElementById('setCsvFormat'),
-    setMonthTarget: document.getElementById('setMonthTarget'),
+    setTargetHours: document.getElementById('setTargetHours'),
+    setTargetUnit: document.getElementById('setTargetUnit'),
+    setBalanceSince: document.getElementById('setBalanceSince'),
+    setBalanceStart: document.getElementById('setBalanceStart'),
+    balanceFields: document.getElementById('balanceFields'),
+    targetSummary: document.getElementById('targetSummary'),
+    targetPeriodLabel: document.getElementById('targetPeriodLabel'),
+    targetProgress: document.getElementById('targetProgress'),
+    targetBar: document.getElementById('targetBar'),
+    targetBarFill: document.getElementById('targetBarFill'),
+    balanceRow: document.getElementById('balanceRow'),
+    balanceLabel: document.getElementById('balanceLabel'),
+    balanceValue: document.getElementById('balanceValue'),
+    targetSetupBtn: document.getElementById('targetSetupBtn'),
+    overviewDiffLabel: document.getElementById('overviewDiffLabel'),
+    overviewTargetSetupBtn: document.getElementById('overviewTargetSetupBtn'),
     settingsStatus: document.getElementById('settingsStatus'),
     syncSignedOut: document.getElementById('syncSignedOut'),
     syncSignedIn: document.getElementById('syncSignedIn'),
@@ -670,6 +734,110 @@
   }
   function formatTime(date){ return date.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}); }
   function dayKey(date){ return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate()); }
+
+  // --- Sollstunden & Stundenkonto ---
+  function targetHours(){
+    const h = (typeof settings.targetHours === 'number') ? settings.targetHours : settings.monthTargetHours;
+    return (typeof h === 'number' && h > 0) ? h : 0;
+  }
+  function targetUnit(){ return settings.targetUnit === 'week' ? 'week' : 'month'; }
+  function periodStartOf(date){
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if(targetUnit() === 'week'){ d.setDate(d.getDate() - ((d.getDay()+6)%7)); return d; }
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  }
+  function nextPeriodStart(ps){
+    if(targetUnit() === 'week') return new Date(ps.getFullYear(), ps.getMonth(), ps.getDate()+7);
+    return new Date(ps.getFullYear(), ps.getMonth()+1, 1);
+  }
+  function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
+  function dateInputValue(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function balanceSinceDate(){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(settings.balanceSince || '');
+    if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+    return periodStartOf(new Date());
+  }
+  // Soll zwischen zwei Tagesgrenzen; angebrochene Wochen/Monate werden anteilig nach Tagen gerechnet
+  function targetMsBetween(a, b){
+    const hrs = targetHours();
+    if(!(hrs > 0) || b <= a) return 0;
+    let total = 0, ps = periodStartOf(a), guard = 0;
+    while(ps < b && guard++ < 5000){
+      const pe = nextPeriodStart(ps);
+      const os = a > ps ? a : ps;
+      const oe = b < pe ? b : pe;
+      if(oe > os) total += hrs * 3600000 * daysBetween(os, oe) / daysBetween(ps, pe);
+      ps = pe;
+    }
+    return total;
+  }
+  function workedMsBetween(a, b){
+    let total = 0;
+    entries.forEach(e => { const d = new Date(e.start); if(d >= a && d < b) total += e.durationMs; });
+    if(activeSession){
+      const st = new Date(activeSession.startTime);
+      if(st >= a && st < b) total += currentElapsedMs(activeSession);
+    }
+    return total;
+  }
+  function formatSigned(ms){ return (ms >= 0 ? '+' : '−') + formatDuration(Math.abs(ms)); }
+  function formatShort(ms){ return formatDuration(ms).replace(' Std.', ''); }
+  function parseHoursInput(str){
+    const t = String(str || '').trim().replace(',', '.');
+    if(!t) return 0;
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? n : NaN;
+  }
+  function parseSignedHM(str){
+    let t = String(str || '').trim().replace(/\s+/g, '').replace('−', '-');
+    if(!t) return 0;
+    let sign = 1;
+    if(t[0] === '-'){ sign = -1; t = t.slice(1); } else if(t[0] === '+'){ t = t.slice(1); }
+    if(t.includes(':')){
+      const parts = t.split(':');
+      if(parts.length !== 2 || !/^\d*$/.test(parts[0]) || !/^\d{1,2}$/.test(parts[1])) return NaN;
+      const hh = parseInt(parts[0] || '0', 10), mm = parseInt(parts[1], 10);
+      if(mm > 59) return NaN;
+      return sign * (hh*60 + mm);
+    }
+    const n = Number(t.replace(',', '.'));
+    return Number.isFinite(n) ? sign * Math.round(n*60) : NaN;
+  }
+  function formatSignedHM(min){
+    const a = Math.abs(min);
+    return (min < 0 ? '-' : '') + Math.floor(a/60) + ':' + pad(a%60);
+  }
+
+  function renderTargetSummary(){
+    if(!(targetHours() > 0)){
+      el.targetSummary.style.display = 'none';
+      el.targetSetupBtn.style.display = 'block';
+      return;
+    }
+    el.targetSummary.style.display = 'block';
+    el.targetSetupBtn.style.display = 'none';
+    const week = targetUnit() === 'week';
+    const since = balanceSinceDate();
+    const curPS = periodStartOf(new Date());
+    const curPE = nextPeriodStart(curPS);
+    const effStart = since > curPS ? since : curPS;
+    const worked = workedMsBetween(effStart, curPE);
+    const target = targetMsBetween(effStart, curPE);
+    el.targetPeriodLabel.textContent = week ? 'Diese Woche' : 'Diesen Monat';
+    el.targetProgress.textContent = formatShort(worked) + ' / ' + formatShort(target) + ' Std.';
+    const pct = target > 0 ? Math.min(100, worked / target * 100) : 0;
+    el.targetBarFill.style.width = pct.toFixed(1) + '%';
+    el.targetBar.classList.toggle('done', target > 0 && worked >= target);
+
+    const startMs = (settings.balanceStartMin || 0) * 60000;
+    let balance = startMs;
+    if(since < curPS){ balance += workedMsBetween(since, curPS) - targetMsBetween(since, curPS); }
+    const showBalance = since < curPS || startMs !== 0;
+    el.balanceRow.style.display = showBalance ? 'flex' : 'none';
+    el.balanceLabel.textContent = week ? 'Stundenkonto bis Vorwoche' : 'Stundenkonto bis Vormonat';
+    el.balanceValue.textContent = formatSigned(balance);
+    el.balanceValue.style.color = balance >= 0 ? 'var(--green-700)' : 'var(--danger)';
+  }
   function formatDayHeading(date){
     const str = date.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
     return str.charAt(0).toUpperCase()+str.slice(1);
@@ -748,6 +916,7 @@
     if(!activeSession) return;
     el.timer.textContent = formatElapsed(currentElapsedMs(activeSession));
     el.todayTotal.textContent = formatDuration(todayTotalMs());
+    renderTargetSummary();
   }
   function startTicking(){ stopTicking(); tick(); tickInterval = setInterval(tick, 1000); }
   function stopTicking(){ if(tickInterval){ clearInterval(tickInterval); tickInterval = null; } }
@@ -1004,6 +1173,7 @@
       el.timer.textContent = '00:00:00';
     }
     el.todayTotal.textContent = formatDuration(todayTotalMs());
+    renderTargetSummary();
   }
 
   function renderAll(){ renderTracker(); renderActivityGrid(); renderHistory(); }
@@ -1048,19 +1218,27 @@
     el.overviewTotal.textContent = formatDuration(totalMs);
     el.overviewAvg.textContent = periodEntries.length ? formatDuration(totalMs / periodEntries.length) : '–';
 
-    const targetHours = settings.monthTargetHours;
-    if(targetHours > 0){
-      const months = overviewPeriod === 'year' ? 12 : (overviewPeriod === 'quarter' ? 3 : 1);
-      const targetMs = targetHours * months * 3600000;
-      const diffMs = totalMs - targetMs;
+    const targetMs = targetMsBetween(range.start, range.end);
+    if(targetMs > 0){
       el.overviewTarget.textContent = formatDuration(targetMs);
-      el.overviewDiff.textContent = (diffMs >= 0 ? '+' : '−') + formatDuration(Math.abs(diffMs));
-      el.overviewDiff.style.color = diffMs >= 0 ? 'var(--green-700)' : 'var(--danger)';
+      const diffMs = totalMs - targetMs;
+      const isCurrent = range.end > new Date();
+      if(isCurrent && diffMs < 0){
+        el.overviewDiffLabel.textContent = 'Noch offen';
+        el.overviewDiff.textContent = formatDuration(-diffMs);
+        el.overviewDiff.style.color = 'var(--text-muted)';
+      } else {
+        el.overviewDiffLabel.textContent = isCurrent ? 'Über Soll' : 'Plus/Minus';
+        el.overviewDiff.textContent = formatSigned(diffMs);
+        el.overviewDiff.style.color = diffMs >= 0 ? 'var(--green-700)' : 'var(--danger)';
+      }
       el.overviewTargetRow.style.display = 'flex';
       el.overviewDiffRow.style.display = 'flex';
+      el.overviewTargetSetupBtn.style.display = 'none';
     } else {
       el.overviewTargetRow.style.display = 'none';
       el.overviewDiffRow.style.display = 'none';
+      el.overviewTargetSetupBtn.style.display = 'block';
     }
     const currentRange = getPeriodRange(overviewPeriod, new Date());
     el.overviewNextBtn.disabled = range.start.getTime() >= currentRange.start.getTime();
@@ -1470,14 +1648,32 @@
   let resetArmed = false;
   let resetTimeout = null;
 
-  el.headerSettingsBtn.addEventListener('click', () => {
+  function updateBalanceFieldsVisibility(){
+    const h = parseHoursInput(el.setTargetHours.value);
+    el.balanceFields.style.display = (h > 0) ? 'block' : 'none';
+  }
+  el.setTargetHours.addEventListener('input', updateBalanceFieldsVisibility);
+
+  function openSettings(focusTarget){
     el.setRounding.value = String(settings.roundingMin);
     el.setCsvFormat.value = settings.csvFormat;
-    el.setMonthTarget.value = String(settings.monthTargetHours);
+    const hrs = targetHours();
+    el.setTargetHours.value = hrs > 0 ? String(hrs).replace('.', ',') : '';
+    el.setTargetUnit.value = targetUnit();
+    el.setBalanceSince.value = settings.balanceSince || dateInputValue(periodStartOf(new Date()));
+    el.setBalanceStart.value = settings.balanceStartMin ? formatSignedHM(settings.balanceStartMin) : '';
+    updateBalanceFieldsVisibility();
     el.settingsStatus.textContent = '';
     resetArmed = false;
     el.settingsResetBtn.textContent = 'Alle Daten löschen';
     el.settingsModal.classList.add('open');
+    if(focusTarget){ setTimeout(() => el.setTargetHours.focus(), 50); }
+  }
+  el.headerSettingsBtn.addEventListener('click', () => openSettings(false));
+  el.targetSetupBtn.addEventListener('click', () => openSettings(true));
+  el.overviewTargetSetupBtn.addEventListener('click', () => {
+    el.overviewModal.classList.remove('open');
+    openSettings(true);
   });
   function closeSettings(){
     resetArmed = false;
@@ -1490,8 +1686,21 @@
   el.settingsSaveBtn.addEventListener('click', () => {
     settings.roundingMin = parseInt(el.setRounding.value, 10) || 0;
     settings.csvFormat = el.setCsvFormat.value === 'decimal' ? 'decimal' : 'hm';
-    const target = parseInt(el.setMonthTarget.value, 10);
-    settings.monthTargetHours = (Number.isFinite(target) && target > 0) ? target : 0;
+    const hrs = parseHoursInput(el.setTargetHours.value);
+    if(Number.isNaN(hrs) || hrs > 1000){
+      el.settingsStatus.textContent = 'Sollstunden bitte als Zahl eingeben, z. B. 40 oder 38,5.';
+      return;
+    }
+    const startMin = parseSignedHM(el.setBalanceStart.value);
+    if(Number.isNaN(startMin)){
+      el.settingsStatus.textContent = 'Bisherige Plus-/Minusstunden bitte als Zahl eingeben, z. B. 12 oder -3:30.';
+      return;
+    }
+    settings.targetHours = hrs > 0 ? hrs : 0;
+    settings.targetUnit = el.setTargetUnit.value === 'week' ? 'week' : 'month';
+    settings.monthTargetHours = settings.targetUnit === 'month' ? settings.targetHours : Math.round(settings.targetHours * 52 / 12);
+    settings.balanceSince = /^\d{4}-\d{2}-\d{2}$/.test(el.setBalanceSince.value) ? el.setBalanceSince.value : dateInputValue(periodStartOf(new Date()));
+    settings.balanceStartMin = startMin;
     persistLocalStorage();
     renderAll();
     closeSettings();
