@@ -169,6 +169,9 @@
     font-family:inherit; font-size:13px; color:var(--green-700); text-decoration:underline; text-align:left;
   }
   #targetSummary{ margin-bottom:16px; }
+  .pw-wrap{ position:relative; }
+  .field-row .pw-wrap input{ padding-right:46px; }
+  .pw-toggle{ position:absolute; right:4px; top:50%; transform:translateY(-50%); width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:var(--text-muted); cursor:pointer; }
   .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:14px; font-weight:600; color:var(--green-900); }
   h2 + .settings-section{ margin-top:6px; padding-top:0; border-top:none; }
   .target-fields{ display:flex; gap:8px; }
@@ -193,6 +196,15 @@
     display:inline-block; font-family:'Work Sans', sans-serif; font-size:11px; font-weight:500;
     color:var(--green-700); background:var(--surface-alt); padding:2px 9px; border-radius:999px; margin-top:4px;
   }
+  .entry .absence-tag{
+    display:inline-block; font-family:'Work Sans', sans-serif; font-size:12px; font-weight:600;
+    padding:3px 11px; border-radius:999px;
+  }
+  .entry .absence-tag.urlaub{ background:#FCEFC0; color:#7A5C00; }
+  .entry .absence-tag.krank{ background:#F6DDD6; color:var(--danger); }
+  .entry .absence-tag.frei{ background:var(--surface-alt); color:var(--text-muted); }
+  .check-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin:-4px 0 12px; cursor:pointer; }
+  .check-row input{ width:18px; height:18px; margin:0; accent-color:var(--green-700); }
   .entry .pause-note{
     display:block; font-family:'Work Sans', sans-serif; font-size:11px;
     color:var(--yellow-700); margin-top:3px;
@@ -334,6 +346,11 @@
         <input type="text" id="setBalanceStart" placeholder="z. B. 12 oder -3:30">
         <div class="field-hint">Dein Stand vor dem Startdatum, z. B. aus der Lohnabrechnung. Leer lassen, um bei 0 zu starten.</div>
       </div>
+      <div class="field-row">
+        <label for="setAbsenceDay">Stunden pro Urlaubs-/Kranktag</label>
+        <input type="text" id="setAbsenceDay" placeholder="automatisch">
+        <div class="field-hint">Wird bei Urlaub und Krankheit als Arbeitszeit angerechnet. Leer lassen = Sollstunden pro Woche ÷ 5.</div>
+      </div>
     </div>
 
     <h3 class="settings-section">Erfassung und Export</h3>
@@ -358,7 +375,13 @@
       <div class="field-hint" style="margin:0 0 8px;">Optional: Sichere deine Zeiten und nutze sie auf mehreren Geräten.</div>
       <div id="syncSignedOut">
         <input type="email" id="syncEmail" placeholder="E-Mail" autocomplete="username">
-        <input type="password" id="syncPassword" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password" style="margin-top:8px;">
+        <div class="pw-wrap" style="margin-top:8px;">
+          <input type="password" id="syncPassword" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password">
+          <button type="button" class="pw-toggle" id="syncPasswordToggle" aria-label="Passwort anzeigen">
+            <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+          </button>
+        </div>
         <div class="add-activity-row" style="margin-top:8px;">
           <button class="confirm" id="syncSignInBtn" style="flex:1;">Anmelden</button>
           <button class="cancel" id="syncSignUpBtn" style="flex:1;">Registrieren</button>
@@ -379,6 +402,7 @@
     </div>
     <button class="modal-close" id="settingsResetBtn" style="color:var(--danger);">Alle Daten löschen</button>
     <a class="modal-close" href="datenschutz.html" target="_blank" rel="noopener" style="text-decoration:underline;">Datenschutzerklärung</a>
+    <a class="modal-close" href="mailto:aranea.studioo@gmail.com?subject=Feedback%20zur%20App%20Dienstzeit" style="text-decoration:underline;">Feedback senden</a>
   </div>
 </div>
 
@@ -398,6 +422,9 @@
     <div class="month-stat-row"><span class="label">Arbeitstage</span><span class="value" id="overviewDays">0</span></div>
     <div class="month-stat-row"><span class="label">Gesamt</span><span class="value" id="overviewTotal">0:00 Std.</span></div>
     <div class="month-stat-row"><span class="label">Ø pro Dienst</span><span class="value" id="overviewAvg">–</span></div>
+    <div class="month-stat-row" id="overviewUrlaubRow" style="display:none;"><span class="label">Urlaub</span><span class="value" id="overviewUrlaub">–</span></div>
+    <div class="month-stat-row" id="overviewKrankRow" style="display:none;"><span class="label">Krank</span><span class="value" id="overviewKrank">–</span></div>
+    <div class="month-stat-row" id="overviewFreiRow" style="display:none;"><span class="label">Frei</span><span class="value" id="overviewFrei">–</span></div>
     <div class="month-stat-row" id="overviewTargetRow" style="display:none;"><span class="label">Soll</span><span class="value" id="overviewTarget">–</span></div>
     <div class="month-stat-row" id="overviewDiffRow" style="display:none;"><span class="label" id="overviewDiffLabel">Plus/Minus</span><span class="value" id="overviewDiff">–</span></div>
     <button class="link-btn" id="overviewTargetSetupBtn" style="display:none; margin-top:8px;">Sollstunden festlegen für Plus-/Minusstunden</button>
@@ -411,10 +438,32 @@
 <div class="modal-overlay" id="manualModal">
   <div class="modal">
     <h2 id="manualModalTitle">Dienst nachtragen</h2>
-    <div class="field-row">
-      <label for="manualDate">Datum</label>
-      <input type="date" id="manualDate">
+    <div class="period-tabs" id="manualTypeTabs">
+      <button type="button" class="period-tab selected" data-type="dienst">Dienst</button>
+      <button type="button" class="period-tab" data-type="urlaub">Urlaub</button>
+      <button type="button" class="period-tab" data-type="krank">Krank</button>
+      <button type="button" class="period-tab" data-type="frei">Frei</button>
     </div>
+    <div class="field-row" id="manualDateRow">
+      <div>
+        <label for="manualDate" id="manualDateLabel">Datum</label>
+        <input type="date" id="manualDate">
+      </div>
+      <div id="manualDateToWrap" style="display:none;">
+        <label for="manualDateTo">Bis (optional)</label>
+        <input type="date" id="manualDateTo">
+      </div>
+    </div>
+    <div id="manualAbsenceFields" style="display:none;">
+      <label class="check-row" id="manualSkipWeekendRow" style="display:none;"><input type="checkbox" id="manualSkipWeekend" checked> Wochenenden auslassen</label>
+      <div class="field-row" id="manualHoursRow">
+        <label for="manualHours">Stunden pro Tag</label>
+        <input type="text" id="manualHours" placeholder="z. B. 8 oder 7:30">
+        <div class="field-hint">Zählt als Arbeitszeit für dein Stundenkonto.</div>
+      </div>
+      <div class="field-hint" id="manualFreiHint" style="display:none; margin:0 0 12px;">Markiert den Tag nur. Es werden keine Stunden angerechnet.</div>
+    </div>
+    <div id="manualDienstFields">
     <div class="field-row two-col">
       <div>
         <label for="manualStart">Start</label>
@@ -442,6 +491,7 @@
         <input type="text" id="manualNewActivityInput" placeholder="Neue Tätigkeit…" maxlength="40">
         <button class="confirm" id="manualNewActivityConfirm">Übernehmen</button>
       </div>
+    </div>
     </div>
     <div class="modal-status" id="manualStatus"></div>
     <div class="modal-actions">
@@ -808,6 +858,19 @@
     return (min < 0 ? '-' : '') + Math.floor(a/60) + ':' + pad(a%60);
   }
 
+  // --- Urlaub / Krank / Frei ---
+  const ABSENCE_LABELS = { urlaub: 'Urlaub', krank: 'Krank', frei: 'Frei' };
+  function isAbsence(e){ return !!(e && ABSENCE_LABELS[e.type]); }
+  function autoAbsenceMin(hrs, unit){
+    if(!(hrs > 0)) return 480;
+    return Math.round((unit === 'week' ? hrs / 5 : hrs * 12 / 52 / 5) * 60);
+  }
+  function defaultAbsenceMin(){
+    if(settings.absenceDayMin > 0) return settings.absenceDayMin;
+    return autoAbsenceMin(targetHours(), targetUnit());
+  }
+  function dayCountText(n){ return n + (n === 1 ? ' Tag' : ' Tage'); }
+
   function renderTargetSummary(){
     if(!(targetHours() > 0)){
       el.targetSummary.style.display = 'none';
@@ -904,7 +967,7 @@
 
   function todayTotalMs(){
     const key = dayKey(new Date());
-    let total = entries.filter(e => dayKey(new Date(e.start)) === key).reduce((sum,e) => sum + e.durationMs, 0);
+    let total = entries.filter(e => !isAbsence(e) && dayKey(new Date(e.start)) === key).reduce((sum,e) => sum + e.durationMs, 0);
     if(activeSession){
       const start = new Date(activeSession.startTime);
       if(dayKey(start) === key){ total += currentElapsedMs(activeSession); }
@@ -1119,13 +1182,17 @@
           const times = (entry.pauses || []).map(p => formatTime(new Date(p.from))+'–'+formatTime(new Date(p.to))).join(', ');
           pauseHtml = '<span class="pause-note">Pause '+formatDuration(entry.pauseMs)+(times ? ' ('+times+')' : '')+'</span>';
         }
-        left.innerHTML = '<span class="range">'+formatTime(start)+'–'+formatTime(end)+'</span>' +
-          (entry.activity ? '<span class="activity-tag">'+escapeHtml(entry.activity)+'</span>' : '') + pauseHtml;
+        if(isAbsence(entry)){
+          left.innerHTML = '<span class="absence-tag '+entry.type+'">'+ABSENCE_LABELS[entry.type]+'</span>';
+        } else {
+          left.innerHTML = '<span class="range">'+formatTime(start)+'–'+formatTime(end)+'</span>' +
+            (entry.activity ? '<span class="activity-tag">'+escapeHtml(entry.activity)+'</span>' : '') + pauseHtml;
+        }
         const right = document.createElement('div');
         right.className = 'right';
         const duration = document.createElement('span');
         duration.className = 'duration';
-        duration.textContent = formatDuration(entry.durationMs);
+        duration.textContent = (entry.type === 'frei') ? '–' : formatDuration(entry.durationMs);
         const editHint = document.createElement('span');
         editHint.className = 'edit-hint';
         editHint.textContent = '✎';
@@ -1208,20 +1275,30 @@
   }
 
   function renderOverview(){
-    document.querySelectorAll('.period-tab').forEach(btn => btn.classList.toggle('selected', btn.dataset.period === overviewPeriod));
+    document.querySelectorAll('#overviewModal .period-tab').forEach(btn => btn.classList.toggle('selected', btn.dataset.period === overviewPeriod));
     const range = getPeriodRange(overviewPeriod, overviewAnchor);
     el.overviewLabel.textContent = range.label;
     const periodEntries = entriesInRange(range);
-    const days = new Set(periodEntries.map(e => dayKey(new Date(e.start))));
-    const totalMs = periodEntries.reduce((sum,e) => sum + e.durationMs, 0);
+    const workEntries = periodEntries.filter(e => !isAbsence(e));
+    const days = new Set(workEntries.map(e => dayKey(new Date(e.start))));
+    const totalMs = workEntries.reduce((sum,e) => sum + e.durationMs, 0);
     el.overviewDays.textContent = String(days.size);
     el.overviewTotal.textContent = formatDuration(totalMs);
-    el.overviewAvg.textContent = periodEntries.length ? formatDuration(totalMs / periodEntries.length) : '–';
+    el.overviewAvg.textContent = workEntries.length ? formatDuration(totalMs / workEntries.length) : '–';
+    let creditMs = 0;
+    ['urlaub','krank','frei'].forEach(t => {
+      const list = periodEntries.filter(e => e.type === t);
+      const ms = list.reduce((sum,e) => sum + e.durationMs, 0);
+      creditMs += ms;
+      const cap = t.charAt(0).toUpperCase() + t.slice(1);
+      el['overview'+cap+'Row'].style.display = list.length ? 'flex' : 'none';
+      el['overview'+cap].textContent = dayCountText(list.length) + (t !== 'frei' && ms > 0 ? ' (' + formatShort(ms) + ' Std.)' : '');
+    });
 
     const targetMs = targetMsBetween(range.start, range.end);
     if(targetMs > 0){
       el.overviewTarget.textContent = formatDuration(targetMs);
-      const diffMs = totalMs - targetMs;
+      const diffMs = totalMs + creditMs - targetMs;
       const isCurrent = range.end > new Date();
       if(isCurrent && diffMs < 0){
         el.overviewDiffLabel.textContent = 'Noch offen';
@@ -1257,7 +1334,7 @@
     renderOverview();
     el.overviewModal.classList.add('open');
   });
-  document.querySelectorAll('.period-tab').forEach(btn => {
+  document.querySelectorAll('#overviewModal .period-tab').forEach(btn => {
     btn.addEventListener('click', () => { overviewPeriod = btn.dataset.period; renderOverview(); });
   });
   el.overviewPrevBtn.addEventListener('click', () => { shiftAnchor(-1); renderOverview(); });
@@ -1290,13 +1367,16 @@
     const fmt = (ms) => settings.csvFormat === 'decimal'
       ? (ms/3600000).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2})
       : formatDurationHM(ms);
-    const header = 'Datum;Start;Ende;Dauer;Pause;Anwesend;Tätigkeit';
+    const header = 'Datum;Start;Ende;Dauer;Pause;Anwesend;Tätigkeit;Art';
     const rows = source.slice().sort((a,b) => new Date(a.start) - new Date(b.start)).map(e => {
       const start = new Date(e.start), end = new Date(e.end);
       const dateStr = start.toLocaleDateString('de-DE');
+      if(isAbsence(e)){
+        return [dateStr, '', '', fmt(e.durationMs), '', '', '', ABSENCE_LABELS[e.type]].join(';');
+      }
       const pauseMs = e.pauseMs || 0;
       const activity = (e.activity || '').replace(/;/g, ',').replace(/\n/g,' ');
-      return [dateStr, formatTime(start), formatTime(end), fmt(e.durationMs), fmt(pauseMs), fmt(end - start), activity].join(';');
+      return [dateStr, formatTime(start), formatTime(end), fmt(e.durationMs), fmt(pauseMs), fmt(end - start), activity, 'Dienst'].join(';');
     });
     return [header].concat(rows).join('\n');
   }
@@ -1395,24 +1475,145 @@
     if(ev.key === 'Enter'){ ev.preventDefault(); confirmManualNewActivity(); }
   });
 
+  // --- Art des Eintrags: Dienst / Urlaub / Krank / Frei ---
+  Object.assign(el, {
+    manualTypeTabs: document.getElementById('manualTypeTabs'),
+    manualDateRow: document.getElementById('manualDateRow'),
+    manualDateLabel: document.getElementById('manualDateLabel'),
+    manualDateToWrap: document.getElementById('manualDateToWrap'),
+    manualDateTo: document.getElementById('manualDateTo'),
+    manualAbsenceFields: document.getElementById('manualAbsenceFields'),
+    manualDienstFields: document.getElementById('manualDienstFields'),
+    manualSkipWeekendRow: document.getElementById('manualSkipWeekendRow'),
+    manualSkipWeekend: document.getElementById('manualSkipWeekend'),
+    manualHoursRow: document.getElementById('manualHoursRow'),
+    manualHours: document.getElementById('manualHours'),
+    manualFreiHint: document.getElementById('manualFreiHint'),
+    setAbsenceDay: document.getElementById('setAbsenceDay'),
+    overviewUrlaubRow: document.getElementById('overviewUrlaubRow'),
+    overviewUrlaub: document.getElementById('overviewUrlaub'),
+    overviewKrankRow: document.getElementById('overviewKrankRow'),
+    overviewKrank: document.getElementById('overviewKrank'),
+    overviewFreiRow: document.getElementById('overviewFreiRow'),
+    overviewFrei: document.getElementById('overviewFrei')
+  });
+  let manualType = 'dienst';
+  const MANUAL_TITLES_NEW = { dienst: 'Dienst nachtragen', urlaub: 'Urlaub eintragen', krank: 'Krankheitstag eintragen', frei: 'Freien Tag eintragen' };
+  const MANUAL_TITLES_EDIT = { dienst: 'Dienst bearbeiten', urlaub: 'Urlaub bearbeiten', krank: 'Krankheitstag bearbeiten', frei: 'Freien Tag bearbeiten' };
+
+  function updateSkipWeekendVisibility(){
+    const ranged = manualType !== 'dienst' && !editingEntryId && el.manualDateTo.value && el.manualDateTo.value > el.manualDate.value;
+    el.manualSkipWeekendRow.style.display = ranged ? 'flex' : 'none';
+  }
+  function setManualType(t){
+    manualType = ABSENCE_LABELS[t] ? t : 'dienst';
+    el.manualTypeTabs.querySelectorAll('.period-tab').forEach(b => b.classList.toggle('selected', b.dataset.type === manualType));
+    const absence = manualType !== 'dienst';
+    el.manualDienstFields.style.display = absence ? 'none' : 'block';
+    el.manualAbsenceFields.style.display = absence ? 'block' : 'none';
+    el.manualHoursRow.style.display = (manualType === 'urlaub' || manualType === 'krank') ? 'block' : 'none';
+    el.manualFreiHint.style.display = manualType === 'frei' ? 'block' : 'none';
+    const showRange = absence && !editingEntryId;
+    el.manualDateToWrap.style.display = showRange ? 'block' : 'none';
+    el.manualDateRow.classList.toggle('two-col', showRange);
+    el.manualDateLabel.textContent = showRange ? 'Von' : 'Datum';
+    if(absence && !el.manualHours.value) el.manualHours.value = formatSignedHM(defaultAbsenceMin());
+    updateSkipWeekendVisibility();
+    el.manualModalTitle.textContent = (editingEntryId ? MANUAL_TITLES_EDIT : MANUAL_TITLES_NEW)[manualType];
+    el.manualStatus.textContent = '';
+  }
+  el.manualTypeTabs.querySelectorAll('.period-tab').forEach(b => b.addEventListener('click', () => setManualType(b.dataset.type)));
+  el.manualDate.addEventListener('input', updateSkipWeekendVisibility);
+  el.manualDateTo.addEventListener('input', updateSkipWeekendVisibility);
+
+  function parseDateInput(str){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str || '');
+    return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+  }
+  function saveAbsence(){
+    const from = parseDateInput(el.manualDate.value);
+    if(!from){ el.manualStatus.textContent = 'Bitte ein Datum auswählen.'; return; }
+    let minutes = 0;
+    if(manualType !== 'frei'){
+      minutes = parseSignedHM(el.manualHours.value);
+      if(Number.isNaN(minutes) || minutes < 0 || minutes > 24*60){
+        el.manualStatus.textContent = 'Stunden bitte als Zahl eingeben, z. B. 8 oder 7:30.';
+        return;
+      }
+    }
+    const makeEntry = (d) => ({
+      id: 'e'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      type: manualType,
+      start: d.toISOString(),
+      end: d.toISOString(),
+      durationMs: minutes * 60000,
+      pauseMs: 0,
+      pauses: [],
+      activity: ''
+    });
+    if(editingEntryId){
+      const idx = entries.findIndex(e => e.id === editingEntryId);
+      if(idx !== -1){ const n = makeEntry(from); n.id = editingEntryId; entries[idx] = n; }
+      editingEntryId = null;
+    } else {
+      const to = el.manualDateTo.value ? parseDateInput(el.manualDateTo.value) : from;
+      if(!to || to < from){ el.manualStatus.textContent = 'Das Bis-Datum liegt vor dem Von-Datum.'; return; }
+      if(daysBetween(from, to) > 366){ el.manualStatus.textContent = 'Bitte höchstens ein Jahr auf einmal eintragen.'; return; }
+      const skipWeekend = el.manualSkipWeekend.checked && to > from;
+      const taken = new Set(entries.filter(isAbsence).map(e => dayKey(new Date(e.start))));
+      const newOnes = [];
+      let skipped = 0;
+      for(let d = new Date(from); d <= to; d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)){
+        const wd = d.getDay();
+        if(skipWeekend && (wd === 0 || wd === 6)) continue;
+        if(taken.has(dayKey(d))){ skipped++; continue; }
+        newOnes.push(makeEntry(new Date(d)));
+      }
+      if(newOnes.length === 0){
+        el.manualStatus.textContent = skipped ? 'Für diese Tage ist schon Urlaub, Krank oder Frei eingetragen.' : 'Im gewählten Zeitraum liegen nur Wochenendtage.';
+        return;
+      }
+      newOnes.reverse().forEach(n => entries.unshift(n));
+    }
+    persistLocalStorage();
+    renderAll();
+    el.manualModal.classList.remove('open');
+  }
+
   el.headerAddBtn.addEventListener('click', () => {
     editingEntryId = null;
-    el.manualModalTitle.textContent = 'Dienst nachtragen';
     el.manualAddBtn.textContent = 'Eintragen';
     el.manualDate.value = dayKey(new Date());
+    el.manualDateTo.value = '';
+    el.manualSkipWeekend.checked = true;
+    el.manualHours.value = formatSignedHM(defaultAbsenceMin());
     el.manualStart.value = '';
     el.manualEnd.value = '';
     el.manualPauseStart.value = '';
     el.manualPauseEnd.value = '';
     populateManualActivitySelect();
     el.manualAddActivityRow.style.display = 'none';
-    el.manualStatus.textContent = '';
+    setManualType('dienst');
     el.manualModal.classList.add('open');
   });
   function openEditEntry(entry){
     editingEntryId = entry.id;
-    el.manualModalTitle.textContent = 'Dienst bearbeiten';
     el.manualAddBtn.textContent = 'Speichern';
+    el.manualDateTo.value = '';
+    if(isAbsence(entry)){
+      const d = new Date(entry.start);
+      el.manualDate.value = dayKey(d);
+      el.manualStart.value = ''; el.manualEnd.value = '';
+      el.manualPauseStart.value = ''; el.manualPauseEnd.value = '';
+      populateManualActivitySelect();
+      el.manualAddActivityRow.style.display = 'none';
+      el.manualActivity.value = '';
+      el.manualHours.value = formatSignedHM(entry.type === 'frei' ? defaultAbsenceMin() : Math.round(entry.durationMs / 60000));
+      setManualType(entry.type);
+      el.manualModal.classList.add('open');
+      return;
+    }
+    el.manualHours.value = formatSignedHM(defaultAbsenceMin());
     const start = new Date(entry.start);
     const end = new Date(entry.end);
     el.manualDate.value = dayKey(start);
@@ -1432,13 +1633,14 @@
     populateManualActivitySelect();
     el.manualAddActivityRow.style.display = 'none';
     el.manualActivity.value = entry.activity || '';
-    el.manualStatus.textContent = '';
+    setManualType('dienst');
     el.manualModal.classList.add('open');
   }
   el.manualCancelBtn.addEventListener('click', () => { editingEntryId = null; el.manualModal.classList.remove('open'); });
   el.manualModal.addEventListener('click', (ev) => { if(ev.target === el.manualModal){ editingEntryId = null; el.manualModal.classList.remove('open'); } });
 
   el.manualAddBtn.addEventListener('click', () => {
+    if(manualType !== 'dienst'){ saveAbsence(); return; }
     const dateStr = el.manualDate.value;
     const startStr = el.manualStart.value;
     const endStr = el.manualEnd.value;
@@ -1555,6 +1757,9 @@
     const headerCells = lines[0].split(';').map(h => h.trim().toLowerCase());
     let activityIdx = headerCells.findIndex(h => h.startsWith('tätigkeit') || h.startsWith('taetigkeit') || h.startsWith('t\u00c3'));
     let pauseIdx = headerCells.findIndex(h => h.startsWith('pause'));
+    const artIdx = headerCells.findIndex(h => h === 'art');
+    let dauerIdx = headerCells.findIndex(h => h.startsWith('dauer'));
+    if(dauerIdx === -1) dauerIdx = 3;
     if(activityIdx === -1) activityIdx = 4;
 
     function parseDurationToMs(str){
@@ -1578,6 +1783,22 @@
       const dateParts = dateStr.split('.');
       if(dateParts.length !== 3) return;
       const day = parseInt(dateParts[0], 10), month = parseInt(dateParts[1], 10), year = parseInt(dateParts[2], 10);
+      const art = artIdx !== -1 ? (parts[artIdx] || '').trim().toLowerCase() : '';
+      if(ABSENCE_LABELS[art]){
+        if([day,month,year].some(n => Number.isNaN(n))) return;
+        const d = new Date(year, month-1, day);
+        parsed.push({
+          id: 'e'+d.getTime()+'_'+Math.random().toString(36).slice(2,7),
+          type: art,
+          start: d.toISOString(),
+          end: d.toISOString(),
+          durationMs: art === 'frei' ? 0 : parseDurationToMs(parts[dauerIdx]),
+          pauseMs: 0,
+          pauses: [],
+          activity: ''
+        });
+        return;
+      }
       const startParts = startStr.split(':').map(Number);
       const endParts = endStr.split(':').map(Number);
       if([day,month,year,...startParts,...endParts].some(n => Number.isNaN(n))) return;
@@ -1599,10 +1820,10 @@
   }
 
   function importEntries(newEntries){
-    const existingKeys = new Set(entries.map(e => e.start+'|'+e.end));
+    const existingKeys = new Set(entries.map(e => e.start+'|'+e.end+'|'+(e.type || '')));
     let added = 0;
     newEntries.forEach(e => {
-      const key = e.start+'|'+e.end;
+      const key = e.start+'|'+e.end+'|'+(e.type || '');
       if(existingKeys.has(key)) return;
       if(e.activity){ e.activity = addActivityIfNew(e.activity); }
       entries.push(e);
@@ -1651,8 +1872,20 @@
   function updateBalanceFieldsVisibility(){
     const h = parseHoursInput(el.setTargetHours.value);
     el.balanceFields.style.display = (h > 0) ? 'block' : 'none';
+    el.setAbsenceDay.placeholder = 'automatisch: ' + formatSignedHM(autoAbsenceMin(h, el.setTargetUnit.value)) + ' Std.';
   }
   el.setTargetHours.addEventListener('input', updateBalanceFieldsVisibility);
+  el.setTargetUnit.addEventListener('change', updateBalanceFieldsVisibility);
+
+  const pwToggle = document.getElementById('syncPasswordToggle');
+  pwToggle.addEventListener('click', () => {
+    const pw = document.getElementById('syncPassword');
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    pwToggle.querySelector('.eye-open').style.display = show ? 'none' : 'block';
+    pwToggle.querySelector('.eye-closed').style.display = show ? 'block' : 'none';
+    pwToggle.setAttribute('aria-label', show ? 'Passwort verbergen' : 'Passwort anzeigen');
+  });
 
   function openSettings(focusTarget){
     el.setRounding.value = String(settings.roundingMin);
@@ -1662,6 +1895,7 @@
     el.setTargetUnit.value = targetUnit();
     el.setBalanceSince.value = settings.balanceSince || dateInputValue(periodStartOf(new Date()));
     el.setBalanceStart.value = settings.balanceStartMin ? formatSignedHM(settings.balanceStartMin) : '';
+    el.setAbsenceDay.value = settings.absenceDayMin > 0 ? formatSignedHM(settings.absenceDayMin) : '';
     updateBalanceFieldsVisibility();
     el.settingsStatus.textContent = '';
     resetArmed = false;
@@ -1696,6 +1930,12 @@
       el.settingsStatus.textContent = 'Bisherige Plus-/Minusstunden bitte als Zahl eingeben, z. B. 12 oder -3:30.';
       return;
     }
+    const absenceMin = parseSignedHM(el.setAbsenceDay.value);
+    if(Number.isNaN(absenceMin) || absenceMin < 0 || absenceMin > 24*60){
+      el.settingsStatus.textContent = 'Stunden pro Urlaubs-/Kranktag bitte als Zahl eingeben, z. B. 8 oder 7:30.';
+      return;
+    }
+    settings.absenceDayMin = absenceMin;
     settings.targetHours = hrs > 0 ? hrs : 0;
     settings.targetUnit = el.setTargetUnit.value === 'week' ? 'week' : 'month';
     settings.monthTargetHours = settings.targetUnit === 'month' ? settings.targetHours : Math.round(settings.targetHours * 52 / 12);
