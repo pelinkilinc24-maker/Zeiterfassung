@@ -47,14 +47,14 @@
   #app{ max-width:480px; margin:0 auto; min-height:100vh; padding:20px 20px 48px; display:flex; flex-direction:column; }
 
   header{ display:flex; justify-content:space-between; align-items:center; padding:4px 0 14px; position:relative; }
-  header h1{ margin:0; font-size:15px; font-weight:600; letter-spacing:0.01em; color:var(--text-muted); }
-  .header-actions{ display:flex; align-items:center; gap:2px; }
+  header h1{ margin:0; font-size:16.5px; font-weight:600; letter-spacing:0.01em; color:var(--text-muted); }
+  .header-actions{ display:flex; align-items:center; gap:4px; margin-right:-10px; }
   .icon-btn{
-    background:none; border:none; padding:8px; margin:-8px; border-radius:10px; cursor:pointer;
+    background:none; border:none; padding:0; margin:0; min-width:46px; min-height:46px; border-radius:12px; cursor:pointer;
     color:var(--green-900); display:flex; align-items:center; justify-content:center;
   }
   .icon-btn:active{ background:var(--surface-alt); }
-  .icon-btn svg{ width:22px; height:22px; display:block; }
+  .icon-btn svg{ width:25px; height:25px; display:block; }
   .file-menu-wrap{ position:relative; }
   .file-menu{
     position:absolute; top:100%; right:-8px; margin-top:6px; background:var(--surface);
@@ -64,7 +64,7 @@
   .file-menu.open{ display:block; }
   .file-menu button{
     display:block; width:100%; text-align:left; background:none; border:none; padding:12px 14px;
-    font-family:inherit; font-size:13.5px; color:var(--text); cursor:pointer;
+    font-family:inherit; font-size:15px; color:var(--text); cursor:pointer;
   }
   .file-menu button:active{ background:var(--surface-alt); }
   .file-menu button + button{ border-top:1px solid var(--border); }
@@ -72,7 +72,7 @@
 
   .storage-note{
     background:var(--surface-alt); border:1px solid var(--border); border-radius:12px;
-    padding:11px 13px; margin-bottom:16px; font-size:12.5px; line-height:1.5; color:var(--green-700);
+    padding:11px 13px; margin-bottom:16px; font-size:14px; line-height:1.5; color:var(--green-700);
   }
 
   .tracker{ background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:28px 20px 22px; text-align:center; }
@@ -85,11 +85,11 @@
   .timer.paused{ color:var(--text-muted); }
   @media (prefers-reduced-motion: no-preference){ .timer.active{ animation:pulse 2.2s ease-in-out infinite; } }
   @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.82; } }
-  .status{ margin-top:6px; font-size:14px; color:var(--text-muted); }
+  .status{ margin-top:6px; font-size:15.5px; color:var(--text-muted); }
 
   .toggle-btn{
     margin-top:22px; width:100%; border:none; border-radius:12px; padding:18px;
-    font-family:inherit; font-size:17px; font-weight:600; cursor:pointer;
+    font-family:inherit; font-size:18px; font-weight:600; cursor:pointer;
     background:var(--green-900); color:var(--yellow-500);
     transition:transform 0.08s ease, opacity 0.15s ease;
   }
@@ -99,24 +99,25 @@
 
   .pause-btn{
     margin-top:10px; width:100%; border:1px solid var(--green-700); background:transparent;
-    color:var(--green-900); font-family:inherit; font-size:14px; font-weight:600;
+    color:var(--green-900); font-family:inherit; font-size:15.5px; font-weight:600;
     padding:12px; border-radius:12px; cursor:pointer; display:none;
   }
   .pause-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
 
   .activity-section{ margin-top:20px; text-align:left; }
-  .activity-label{ font-size:12px; color:var(--text-muted); margin:0 2px 8px; }
+  .activity-label{ font-size:13.5px; color:var(--text-muted); margin:0 2px 8px; }
   .activity-edit-toggle{
-    display:block; margin:10px 0 0; background:none; border:none; font-family:inherit; font-size:12.5px;
-    color:var(--text-muted); text-decoration:underline; cursor:pointer; padding:4px 2px;
+    display:inline-flex; align-items:center; gap:6px; margin:12px 0 0; background:var(--surface); border:1px solid var(--border);
+    border-radius:999px; font-family:inherit; font-size:14.5px; font-weight:500; color:var(--text-muted); cursor:pointer; padding:7px 14px;
   }
-  .activity-edit-toggle.active{ color:var(--danger); font-weight:600; }
-  .activity-edit-hint{ font-size:11.5px; line-height:1.45; color:var(--text-muted); margin:6px 2px 0; }
+  .activity-edit-toggle svg{ width:15px; height:15px; display:block; }
+  .activity-edit-toggle.active{ background:var(--green-900); border-color:var(--green-900); color:var(--yellow-500); font-weight:600; }
+  .activity-edit-hint{ font-size:13px; line-height:1.45; color:var(--text-muted); margin:6px 2px 0; }
   .activity-chip.removable{ background:var(--surface); border-color:var(--danger); color:var(--danger); }
   .activity-grid{ display:flex; flex-wrap:wrap; gap:8px; }
   .activity-chip{
     border:1px solid var(--border); background:var(--surface-alt); color:var(--text);
-    font-family:inherit; font-size:13px; font-weight:500; padding:9px 14px;
+    font-family:inherit; font-size:14.5px; font-weight:500; padding:9px 14px;
     border-radius:999px; cursor:pointer;
     transition:background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   }
@@ -127,21 +128,38 @@
   .add-activity-row{ display:flex; gap:8px; margin-top:8px; }
   .add-activity-row input{
     flex:1; min-width:0; border:1px solid var(--border); border-radius:10px; padding:9px 12px;
-    font-family:inherit; font-size:13px; background:var(--surface); color:var(--text);
+    font-family:inherit; font-size:14.5px; background:var(--surface); color:var(--text);
   }
   .add-activity-row input:focus{ outline:none; border-color:var(--green-700); }
-  .add-activity-row button{ border:none; border-radius:10px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .add-activity-row button{ border:none; border-radius:10px; padding:9px 14px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer; }
   .add-activity-row .confirm{ background:var(--green-900); color:var(--yellow-500); }
   .add-activity-row .cancel{ background:var(--surface-alt); color:var(--text-muted); }
+  #onboarding{ position:fixed; inset:0; z-index:60; background:var(--bg); display:none; flex-direction:column; padding:max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); }
+  #onboarding.open{ display:flex; }
+  .ob-slide{ display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; max-width:420px; margin:0 auto; }
+  .ob-slide.active{ display:flex; }
+  .ob-icon{ width:96px; height:96px; border-radius:28px; background:var(--green-900); color:var(--yellow-500); display:flex; align-items:center; justify-content:center; margin-bottom:28px; }
+  .ob-icon svg{ width:48px; height:48px; }
+  .ob-slide h2{ font-size:24px; font-weight:700; color:var(--green-900); margin:0 0 12px; }
+  .ob-slide p{ font-size:16.5px; line-height:1.55; color:var(--text-muted); margin:0; }
+  .ob-dots{ display:flex; justify-content:center; gap:8px; margin:20px 0; }
+  .ob-dots span{ width:8px; height:8px; border-radius:50%; background:var(--border); transition:all .2s; }
+  .ob-dots span.active{ width:22px; border-radius:4px; background:var(--green-900); }
+  .ob-actions{ display:flex; gap:10px; max-width:420px; width:100%; margin:0 auto; }
+  .ob-actions button{ flex:1; border:none; border-radius:12px; padding:14px; font-family:inherit; font-size:16.5px; font-weight:600; cursor:pointer; }
+  #obSkip{ background:var(--surface-alt); color:var(--text-muted); }
+  #obNext{ background:var(--green-900); color:var(--yellow-500); }
+  #syncSignOutBtn{ border:none; border-radius:10px; padding:11px 14px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer; background:var(--surface-alt); color:var(--text); }
 
-  .today-row{ display:flex; justify-content:space-between; align-items:baseline; margin:22px 4px 10px; font-size:14px; }
+  .today-row{ display:flex; justify-content:space-between; align-items:baseline; margin:22px 4px 10px; font-size:15.5px; }
   .today-row .label{ color:var(--text-muted); }
-  .today-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .today-row .label{ min-width:0; }
+  .today-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px; font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
 
   .period-tabs{ display:flex; gap:6px; margin-bottom:14px; }
   .period-tab{
     flex:1; border:1px solid var(--border); background:var(--surface-alt); color:var(--text);
-    font-family:inherit; font-size:13px; font-weight:600; padding:9px 6px; border-radius:9px; cursor:pointer;
+    font-family:inherit; font-size:14.5px; font-weight:600; padding:9px 6px; border-radius:9px; cursor:pointer;
   }
   .period-tab.selected{ background:var(--green-900); border-color:var(--green-900); color:var(--yellow-500); }
 
@@ -151,80 +169,94 @@
     padding:2px 12px; font-family:inherit; line-height:1;
   }
   .month-nav button:disabled{ color:var(--border); cursor:default; }
-  .month-nav .month-label{ font-size:14px; font-weight:600; color:var(--text); }
-  .month-stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:14px; border-top:1px solid var(--border); }
+  .month-nav .month-label{ font-size:15.5px; font-weight:600; color:var(--text); }
+  .month-stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:15.5px; border-top:1px solid var(--border); }
   .month-stat-row:first-of-type{ border-top:none; }
   .month-stat-row .label{ color:var(--text-muted); }
   .month-stat-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
 
-  .summary-row{ display:flex; justify-content:space-between; align-items:baseline; margin:4px 4px; font-size:14px; }
+  .summary-row{ display:flex; justify-content:space-between; align-items:baseline; margin:4px 4px; font-size:15.5px; }
   .summary-row .label{ color:var(--text-muted); }
-  .summary-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .summary-row .label{ min-width:0; }
+  .summary-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px;  font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
   .target-bar{ height:5px; border-radius:999px; background:var(--surface-alt); margin:4px 4px 10px; overflow:hidden; }
   .target-bar > div{ height:100%; width:0; background:var(--green-700); border-radius:inherit; }
   .target-bar.done > div{ background:var(--green-500); }
   @media (prefers-reduced-motion: no-preference){ .target-bar > div{ transition:width .4s ease; } }
   .link-btn{
     display:block; margin:0 4px 12px; padding:4px 0; background:none; border:none; cursor:pointer;
-    font-family:inherit; font-size:13px; color:var(--green-700); text-decoration:underline; text-align:left;
+    font-family:inherit; font-size:14.5px; color:var(--green-700); text-decoration:underline; text-align:left;
   }
   #targetSummary{ margin-bottom:16px; }
+  .pill-btn{
+    display:inline-flex; align-items:center; gap:8px; margin:2px 0 14px; background:var(--surface); border:1px solid var(--border);
+    border-radius:999px; font-family:inherit; font-size:14.5px; font-weight:600; color:var(--green-700); cursor:pointer; padding:9px 16px; align-self:flex-start; width:auto;
+  }
+  .pill-btn svg{ width:17px; height:17px; display:block; flex-shrink:0; }
+  .pill-btn:active{ background:var(--surface-alt); }
   .pw-wrap{ position:relative; }
   .field-row .pw-wrap input{ padding-right:46px; }
   .pw-toggle{ position:absolute; right:4px; top:50%; transform:translateY(-50%); width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:var(--text-muted); cursor:pointer; }
-  .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:14px; font-weight:600; color:var(--green-900); }
+  .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:15.5px; font-weight:600; color:var(--green-900); }
   h2 + .settings-section{ margin-top:6px; padding-top:0; border-top:none; }
   .target-fields{ display:flex; gap:8px; }
   .target-fields > *{ flex:1; min-width:0; }
-  .field-hint{ font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.4; }
+  .field-hint{ font-size:12.5px; color:var(--text-muted); margin-top:4px; line-height:1.4; }
 
   .history-header{ display:flex; justify-content:space-between; align-items:baseline; margin:8px 4px 6px; }
-  .history-header h2{ margin:0; font-size:14px; font-weight:600; color:var(--text); }
+  .history-header h2{ margin:0; font-size:15.5px; font-weight:600; color:var(--text); }
   hr.divider{ border:none; border-top:1px solid var(--border); margin:0 0 8px; }
 
-  .empty-state{ padding:28px 8px; text-align:center; color:var(--text-muted); font-size:14px; line-height:1.5; }
+  .empty-state{ padding:28px 8px; text-align:center; color:var(--text-muted); font-size:15.5px; line-height:1.5; }
 
   .day-group{ margin-bottom:6px; }
-  .day-heading{ display:flex; justify-content:space-between; align-items:baseline; padding:14px 4px 4px; font-size:13px; font-weight:600; color:var(--text-muted); }
+  .day-heading{ display:flex; justify-content:space-between; align-items:baseline; padding:14px 4px 4px; font-size:14.5px; font-weight:600; color:var(--text-muted); }
   .day-heading .day-total{ font-family:'JetBrains Mono', ui-monospace, monospace; color:var(--green-700); }
 
   .entry{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 4px; border-top:1px solid var(--border); cursor:pointer; }
   .entry:active{ background:var(--surface-alt); }
-  .entry .range{ font-family:'JetBrains Mono', ui-monospace, monospace; font-size:14px; color:var(--text); }
-  .entry .edit-hint{ font-size:13px; color:var(--text-muted); }
+  .entry .range{ white-space:nowrap; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:15.5px; color:var(--text); }
+  .entry .edit-hint{ font-size:14.5px; color:var(--text-muted); }
   .entry .activity-tag{
-    display:inline-block; font-family:'Work Sans', sans-serif; font-size:11px; font-weight:500;
+    display:inline-block; font-family:'Work Sans', sans-serif; font-size:12.5px; font-weight:500;
     color:var(--green-700); background:var(--surface-alt); padding:2px 9px; border-radius:999px; margin-top:4px;
   }
   .entry .absence-tag{
-    display:inline-block; font-family:'Work Sans', sans-serif; font-size:12px; font-weight:600;
+    display:inline-block; font-family:'Work Sans', sans-serif; font-size:13.5px; font-weight:600;
     padding:3px 11px; border-radius:999px;
   }
   .entry .absence-tag.urlaub{ background:#FCEFC0; color:#7A5C00; }
   .entry .absence-tag.krank{ background:#F6DDD6; color:var(--danger); }
   .entry .absence-tag.frei{ background:var(--surface-alt); color:var(--text-muted); }
-  .check-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin:-4px 0 12px; cursor:pointer; }
+  .check-row{ display:flex; align-items:center; gap:8px; font-size:14.5px; color:var(--text); margin:-4px 0 12px; cursor:pointer; }
   .check-row input{ width:18px; height:18px; margin:0; accent-color:var(--green-700); }
   .entry .pause-note{
-    display:block; font-family:'Work Sans', sans-serif; font-size:11px;
+    display:block; font-family:'Work Sans', sans-serif; font-size:12.5px;
     color:var(--yellow-700); margin-top:3px;
   }
-  .entry .right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
-  .entry .duration{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; font-size:14px; color:var(--green-900); }
-  .entry .delete{ background:none; border:none; cursor:pointer; font-family:inherit; font-size:13px; color:var(--text-muted); padding:4px 2px; }
-  .entry .delete.confirm{ color:var(--danger); font-weight:600; }
-  .entry .delete:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
+  .entry .right{ display:flex; align-items:center; gap:2px; flex-shrink:0; }
+  .entry .duration{ margin-right:6px; }
+  .entry-btn{
+    width:40px; height:40px; border:none; border-radius:10px; background:none; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center; color:var(--text-muted); flex-shrink:0;
+  }
+  .entry-btn svg{ width:19px; height:19px; display:block; }
+  .entry-btn:active{ background:var(--surface-alt); }
+  .entry-btn.edit{ color:var(--green-700); }
+  .entry-btn.delete.confirm{ width:auto; padding:0 10px; white-space:nowrap; height:34px; border-radius:999px; background:#F6DDD6; color:var(--danger); font-family:inherit; font-size:14.5px; font-weight:600; }
+  .entry .duration{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; font-size:15.5px; color:var(--green-900); }
+  .entry-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
 
   .export-link{
     margin:26px auto 0; background:none; border:none; cursor:pointer; font-family:inherit;
-    font-size:13px; color:var(--text-muted); text-decoration:underline; padding:6px;
+    font-size:14.5px; color:var(--text-muted); text-decoration:underline; padding:6px;
   }
 
   .field-row{ margin-bottom:12px; }
-  .field-row label{ display:block; font-size:12px; color:var(--text-muted); margin-bottom:4px; }
+  .field-row label{ display:block; font-size:13.5px; color:var(--text-muted); margin-bottom:4px; }
   .field-row input, .field-row select{
     width:100%; border:1px solid var(--border); border-radius:9px; padding:10px 11px;
-    font-family:inherit; font-size:14px; background:var(--surface-alt); color:var(--text);
+    font-family:inherit; font-size:15.5px; background:var(--surface-alt); color:var(--text);
   }
   .field-row.two-col{ display:flex; gap:10px; }
   .field-row.two-col > div{ flex:1; }
@@ -232,19 +264,26 @@
   .modal-overlay{ position:fixed; inset:0; background:rgba(22,36,27,0.45); display:none; align-items:flex-end; justify-content:center; z-index:10; }
   .modal-overlay.open{ display:flex; }
   .modal{ background:var(--surface); width:100%; max-width:480px; border-radius:18px 18px 0 0; padding:20px; max-height:80vh; overflow:auto; }
-  .modal h2{ margin:0 0 10px; font-size:15px; font-weight:600; }
+  .modal h2{ margin:0 0 10px; font-size:16.5px; font-weight:600; }
   .modal textarea{
-    width:100%; height:140px; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:11px;
+    width:100%; height:140px; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:12.5px;
     color:var(--text); background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; padding:10px; resize:vertical;
   }
   .modal-actions{ display:flex; gap:10px; margin-top:12px; }
-  .modal-actions button{ flex:1; border:none; border-radius:10px; padding:12px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+  .modal-actions button{ flex:1; border:none; border-radius:10px; padding:12px; font-family:inherit; font-size:15.5px; font-weight:600; cursor:pointer; }
   .modal-actions .primary{ background:var(--green-900); color:var(--yellow-500); }
   .modal-actions .secondary{ background:var(--surface-alt); color:var(--text); }
-  .modal-status{ margin-top:10px; font-size:12px; color:var(--text-muted); min-height:16px; }
-  .modal-close{ display:block; margin:4px auto 0; background:none; border:none; color:var(--text-muted); font-size:13px; text-decoration:underline; cursor:pointer; padding:8px; }
+  .modal-status{ margin-top:10px; font-size:13.5px; color:var(--text-muted); min-height:16px; }
+  .modal-close{ display:block; margin:4px auto 0; background:none; border:none; font-family:inherit; color:var(--text-muted); font-size:14.5px; text-decoration:underline; cursor:pointer; padding:8px; }
 
-  #loadingOverlay{ position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--text-muted); z-index:20; }
+  .danger-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; margin:14px auto 4px; padding:10px 18px;
+    background:var(--surface); border:1px solid rgba(168,68,44,0.35); border-radius:999px; cursor:pointer;
+    font-family:inherit; font-size:14.5px; font-weight:600; color:var(--danger); text-align:center;
+  }
+  .danger-btn svg{ width:17px; height:17px; display:block; flex-shrink:0; }
+  .danger-btn.armed{ background:var(--danger); border-color:var(--danger); color:#fff; }
+  #loadingOverlay{ position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:15.5px; color:var(--text-muted); z-index:20; }
 </style>
 </head>
 <body>
@@ -268,6 +307,7 @@
         <div class="file-menu" id="fileMenu">
           <button id="fileMenuExport">Exportieren</button>
           <button id="fileMenuImport">Importieren</button>
+          <button id="fileMenuPdf">PDF-Bericht</button>
         </div>
       </div>
       <button class="icon-btn" id="headerSettingsBtn" aria-label="Einstellungen">
@@ -309,7 +349,7 @@
     <div class="target-bar" id="targetBar"><div id="targetBarFill"></div></div>
     <div class="summary-row" id="balanceRow"><span class="label" id="balanceLabel">Stundenkonto</span><span class="value" id="balanceValue">+0:00 Std.</span></div>
   </div>
-  <button class="link-btn" id="targetSetupBtn" style="display:none;">Sollstunden festlegen für Plus-/Minusstunden</button>
+  <button class="pill-btn" id="targetSetupBtn" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Sollstunden festlegen</span></button>
 
   <div class="history-header"><h2>Verlauf</h2></div>
   <hr class="divider">
@@ -369,6 +409,10 @@
         <option value="decimal">Dezimal (8,50)</option>
       </select>
     </div>
+    <div class="field-row">
+      <label for="setReportName">Name im PDF-Bericht (optional)</label>
+      <input type="text" id="setReportName" placeholder="z. B. Max Mustermann" maxlength="60">
+    </div>
 
     <h3 class="settings-section">Cloud-Sync</h3>
     <div class="field-row">
@@ -386,6 +430,7 @@
           <button class="confirm" id="syncSignInBtn" style="flex:1;">Anmelden</button>
           <button class="cancel" id="syncSignUpBtn" style="flex:1;">Registrieren</button>
         </div>
+        <button type="button" class="link-btn" id="syncResetBtn" style="margin:10px 0 0;">Passwort vergessen?</button>
       </div>
       <div id="syncSignedIn" style="display:none;">
         <div class="month-stat-row"><span class="label">Angemeldet als</span><span class="value" id="syncEmailLabel" style="font-size:12px;"></span></div>
@@ -400,7 +445,7 @@
       <button class="secondary" id="settingsCloseBtn">Schließen</button>
       <button class="primary" id="settingsSaveBtn">Speichern</button>
     </div>
-    <button class="modal-close" id="settingsResetBtn" style="color:var(--danger);">Alle Daten löschen</button>
+    <button class="danger-btn" id="settingsResetBtn">Verlauf löschen</button>
     <a class="modal-close" href="datenschutz.html" target="_blank" rel="noopener" style="text-decoration:underline;">Datenschutzerklärung</a>
     <a class="modal-close" href="mailto:aranea.studioo@gmail.com?subject=Feedback%20zur%20App%20Dienstzeit" style="text-decoration:underline;">Feedback senden</a>
   </div>
@@ -427,10 +472,11 @@
     <div class="month-stat-row" id="overviewFreiRow" style="display:none;"><span class="label">Frei</span><span class="value" id="overviewFrei">–</span></div>
     <div class="month-stat-row" id="overviewTargetRow" style="display:none;"><span class="label">Soll</span><span class="value" id="overviewTarget">–</span></div>
     <div class="month-stat-row" id="overviewDiffRow" style="display:none;"><span class="label" id="overviewDiffLabel">Plus/Minus</span><span class="value" id="overviewDiff">–</span></div>
-    <button class="link-btn" id="overviewTargetSetupBtn" style="display:none; margin-top:8px;">Sollstunden festlegen für Plus-/Minusstunden</button>
+    <button class="pill-btn" id="overviewTargetSetupBtn" style="display:none; margin-top:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Sollstunden festlegen</span></button>
     <div class="modal-actions">
       <button class="secondary" id="overviewCloseBtn">Schließen</button>
       <button class="primary" id="overviewCsvBtn">Als CSV</button>
+      <button class="primary" id="overviewPdfBtn">Als PDF</button>
     </div>
   </div>
 </div>
@@ -515,6 +561,56 @@
   </div>
 </div>
 
+<div id="onboarding">
+  <div class="ob-slide active">
+    <div class="ob-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></div>
+    <h2>Willkommen bei Dienstzeit</h2>
+    <p>Tippe auf „Dienst beginnen“, wenn dein Dienst startet, und auf „Dienst beenden“, wenn er vorbei ist. Pausen erfasst du mit einem Tipp.</p>
+  </div>
+  <div class="ob-slide">
+    <div class="ob-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+    <h2>Überstunden im Blick</h2>
+    <p>Trage in den Einstellungen (Zahnrad oben rechts) deine Sollstunden ein. Dann zeigt dir die App dein Stundenkonto mit Plus- und Minusstunden.</p>
+  </div>
+  <div class="ob-slide">
+    <div class="ob-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+    <h2>Nachtragen und Export</h2>
+    <p>Mit dem Plus oben trägst du vergessene Dienste, Urlaub, Krank oder Frei nach. Über den Kalender siehst du deine Übersicht und exportierst alles als CSV.</p>
+  </div>
+  <div class="ob-dots"><span class="active"></span><span></span><span></span></div>
+  <div class="ob-actions">
+    <button type="button" id="obSkip">Überspringen</button>
+    <button type="button" id="obNext">Weiter</button>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'zf_onboarded';
+  var box = document.getElementById('onboarding');
+  try {
+    if (localStorage.getItem(KEY)) return;
+    var old = localStorage.getItem('zf_entries');
+    if (old && old !== '[]') { localStorage.setItem(KEY, '1'); return; }
+  } catch(e) { return; }
+  var slides = box.querySelectorAll('.ob-slide');
+  var dots = box.querySelectorAll('.ob-dots span');
+  var next = document.getElementById('obNext');
+  var i = 0;
+  function show(n){
+    i = n;
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === n); });
+    dots.forEach(function(d, k){ d.classList.toggle('active', k === n); });
+    next.textContent = (n === slides.length - 1) ? 'Los geht’s' : 'Weiter';
+  }
+  function done(){
+    try { localStorage.setItem(KEY, '1'); } catch(e) {}
+    box.classList.remove('open');
+  }
+  next.addEventListener('click', function(){ if (i < slides.length - 1) show(i + 1); else done(); });
+  document.getElementById('obSkip').addEventListener('click', done);
+  box.classList.add('open');
+})();
+</script>
 <script type="module">
 (function(){
   let activeSession = null;
@@ -548,7 +644,7 @@
     appId: "1:204702454486:web:216e2d1459e88c1e316f77"
   };
   let fbAuth = null, fbDb = null, currentUser = null, cloudSyncTimeout = null;
-  let fb_createUser, fb_signIn, fb_signOut, fb_onAuthStateChanged, fb_doc, fb_getDoc, fb_setDoc, fb_deleteDoc, fb_deleteUser;
+  let fb_createUser, fb_signIn, fb_signOut, fb_onAuthStateChanged, fb_doc, fb_getDoc, fb_setDoc, fb_deleteDoc, fb_deleteUser, fb_sendReset;
 
   async function loadFirebase(){
     console.log('FB: Laden startet');
@@ -566,6 +662,8 @@
       fbDb = fsMod.getFirestore(fbApp);
       fb_createUser = authMod.createUserWithEmailAndPassword;
       fb_signIn = authMod.signInWithEmailAndPassword;
+      fb_sendReset = authMod.sendPasswordResetEmail;
+      fbAuth.languageCode = 'de';
       fb_signOut = authMod.signOut;
       fb_deleteUser = authMod.deleteUser;
       fb_onAuthStateChanged = authMod.onAuthStateChanged;
@@ -696,6 +794,7 @@
     settingsModal: document.getElementById('settingsModal'),
     setRounding: document.getElementById('setRounding'),
     setCsvFormat: document.getElementById('setCsvFormat'),
+    setReportName: document.getElementById('setReportName'),
     setTargetHours: document.getElementById('setTargetHours'),
     setTargetUnit: document.getElementById('setTargetUnit'),
     setBalanceSince: document.getElementById('setBalanceSince'),
@@ -874,7 +973,7 @@
   function renderTargetSummary(){
     if(!(targetHours() > 0)){
       el.targetSummary.style.display = 'none';
-      el.targetSetupBtn.style.display = 'block';
+      el.targetSetupBtn.style.display = 'inline-flex';
       return;
     }
     el.targetSummary.style.display = 'block';
@@ -1076,6 +1175,8 @@
     if(ev.key === 'Escape'){ closeAddActivity(); }
   });
 
+  const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
   function deleteActivity(name){
     activities = activities.filter(a => a !== name);
     if(currentActivity === name){ currentActivity = null; }
@@ -1109,8 +1210,8 @@
       el.activityGrid.appendChild(newChip);
     }
     el.addActivityRow.style.display = (isAddingActivity && !isEditingActivities) ? 'flex' : 'none';
-    el.activityEditToggle.style.display = activities.length ? 'block' : 'none';
-    el.activityEditToggle.textContent = isEditingActivities ? 'Fertig' : 'Tätigkeit löschen';
+    el.activityEditToggle.style.display = activities.length ? 'inline-flex' : 'none';
+    el.activityEditToggle.innerHTML = isEditingActivities ? 'Fertig' : ICON_TRASH + '<span>Tätigkeit löschen</span>';
     el.activityEditToggle.classList.toggle('active', isEditingActivities);
     el.activityEditHint.style.display = isEditingActivities ? 'block' : 'none';
   }
@@ -1193,16 +1294,18 @@
         const duration = document.createElement('span');
         duration.className = 'duration';
         duration.textContent = (entry.type === 'frei') ? '–' : formatDuration(entry.durationMs);
-        const editHint = document.createElement('span');
-        editHint.className = 'edit-hint';
-        editHint.textContent = '✎';
+        const editHint = document.createElement('button');
+        editHint.className = 'entry-btn edit';
+        editHint.innerHTML = ICON_EDIT;
+        editHint.setAttribute('aria-label', 'Eintrag bearbeiten');
+        editHint.addEventListener('click', (ev) => { ev.stopPropagation(); openEditEntry(entry); });
         const del = document.createElement('button');
-        del.className = 'delete' + (pendingDeleteId === entry.id ? ' confirm' : '');
-        del.textContent = pendingDeleteId === entry.id ? 'Löschen?' : '×';
+        del.className = 'entry-btn delete' + (pendingDeleteId === entry.id ? ' confirm' : '');
+        if(pendingDeleteId === entry.id){ del.textContent = 'Löschen?'; } else { del.innerHTML = ICON_TRASH; }
         del.setAttribute('aria-label', 'Eintrag löschen');
         del.addEventListener('click', (ev) => { ev.stopPropagation(); requestDelete(entry.id); });
         right.appendChild(duration);
-        right.appendChild(editHint);
+        if(pendingDeleteId !== entry.id) right.appendChild(editHint);
         right.appendChild(del);
         row.appendChild(left);
         row.appendChild(right);
@@ -1315,7 +1418,7 @@
     } else {
       el.overviewTargetRow.style.display = 'none';
       el.overviewDiffRow.style.display = 'none';
-      el.overviewTargetSetupBtn.style.display = 'block';
+      el.overviewTargetSetupBtn.style.display = 'inline-flex';
     }
     const currentRange = getPeriodRange(overviewPeriod, new Date());
     el.overviewNextBtn.disabled = range.start.getTime() >= currentRange.start.getTime();
@@ -1341,6 +1444,72 @@
   el.overviewNextBtn.addEventListener('click', () => { if(el.overviewNextBtn.disabled) return; shiftAnchor(1); renderOverview(); });
   el.overviewCloseBtn.addEventListener('click', () => el.overviewModal.classList.remove('open'));
   el.overviewModal.addEventListener('click', (ev) => { if(ev.target === el.overviewModal) el.overviewModal.classList.remove('open'); });
+  // --- PDF-Bericht ---
+  function buildReportHtml(){
+    const range = getPeriodRange(overviewPeriod, overviewAnchor);
+    const list = entriesInRange(range).slice().sort((a,b) => new Date(a.start) - new Date(b.start));
+    const esc = (t) => escapeHtml(String(t == null ? '' : t));
+    const summary = [];
+    document.querySelectorAll('#overviewModal .month-stat-row').forEach(row => {
+      if(row.style.display === 'none') return;
+      const l = row.querySelector('.label'), v = row.querySelector('.value');
+      if(l && v) summary.push('<tr><td>'+esc(l.textContent)+'</td><td class="r">'+esc(v.textContent)+'</td></tr>');
+    });
+    const rows = list.map(e => {
+      const st = new Date(e.start), en = new Date(e.end);
+      const date = st.toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric' });
+      if(isAbsence(e)){
+        return '<tr class="abs"><td>'+esc(date)+'</td><td>–</td><td>–</td><td>–</td><td class="r">'+(e.type === 'frei' ? '–' : esc(formatShort(e.durationMs)))+'</td><td>'+esc(ABSENCE_LABELS[e.type])+'</td></tr>';
+      }
+      return '<tr><td>'+esc(date)+'</td><td>'+esc(formatTime(st))+'</td><td>'+esc(formatTime(en))+'</td><td>'+(e.pauseMs ? esc(formatShort(e.pauseMs)) : '–')+'</td><td class="r">'+esc(formatShort(e.durationMs))+'</td><td>'+esc(e.activity || 'Dienst')+'</td></tr>';
+    }).join('');
+    const created = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const name = (settings.reportName || '').trim();
+    return '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Arbeitszeitnachweis '+esc(range.label)+'</title><style>'
+      + '@page{ size:A4; margin:16mm 14mm; }'
+      + 'body{ font-family:"Work Sans", Roboto, Arial, sans-serif; color:#16241B; font-size:10.5pt; margin:0; }'
+      + 'h1{ font-size:18pt; margin:0 0 2pt; color:#16311F; }'
+      + '.sub{ color:#57685C; margin:0 0 14pt; }'
+      + '.bar{ border-top:4pt solid #F4C41A; margin:0 0 14pt; }'
+      + 'h2{ font-size:11.5pt; margin:16pt 0 6pt; color:#16311F; }'
+      + 'table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }'
+      + 'td, th{ padding:4pt 6pt; border-bottom:0.6pt solid #D5DCCB; text-align:left; vertical-align:top; }'
+      + 'th{ font-size:9pt; color:#57685C; font-weight:600; border-bottom:1pt solid #16311F; }'
+      + '.r{ text-align:right; }'
+      + '.sum td{ font-size:10.5pt; } .sum{ width:60%; }'
+      + 'tr.abs td{ color:#57685C; font-style:italic; }'
+      + 'thead{ display:table-header-group; } tr{ page-break-inside:avoid; }'
+      + '.foot{ margin-top:18pt; font-size:8pt; color:#8A968D; }'
+      + '</style></head><body>'
+      + '<h1>Arbeitszeitnachweis</h1>'
+      + '<p class="sub">'+esc(range.label)+(name ? ' · '+esc(name) : '')+'</p>'
+      + '<div class="bar"></div>'
+      + '<h2>Zusammenfassung</h2><table class="sum">'+summary.join('')+'</table>'
+      + '<h2>Einträge</h2>'
+      + (rows ? '<table><thead><tr><th>Datum</th><th>Beginn</th><th>Ende</th><th>Pause</th><th class="r">Dauer</th><th>Art / Tätigkeit</th></tr></thead><tbody>'+rows+'</tbody></table>'
+              : '<p class="sub">Keine Einträge in diesem Zeitraum.</p>')
+      + '<p class="foot">Erstellt am '+esc(created)+' mit Dienstzeit – Zeiterfassung</p>'
+      + '</body></html>';
+  }
+  function printReport(){
+    const html = buildReportHtml();
+    const title = 'Arbeitszeitnachweis-'+periodFilenameSuffix(overviewPeriod, overviewAnchor);
+    if(window.AndroidBridge && typeof window.AndroidBridge.printReport === 'function'){
+      window.AndroidBridge.printReport(html, title);
+      return;
+    }
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0;';
+    document.body.appendChild(frame);
+    const doc = frame.contentWindow.document;
+    doc.open(); doc.write(html); doc.close();
+    setTimeout(() => {
+      try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch(e) {}
+      setTimeout(() => frame.remove(), 60000);
+    }, 300);
+  }
+  document.getElementById('overviewPdfBtn').addEventListener('click', printReport);
+
   el.overviewCsvBtn.addEventListener('click', () => {
     const range = getPeriodRange(overviewPeriod, overviewAnchor);
     const periodEntries = entriesInRange(range);
@@ -1843,6 +2012,12 @@
     el.fileMenu.classList.remove('open');
     openExportModal();
   });
+  document.getElementById('fileMenuPdf').addEventListener('click', () => {
+    el.fileMenu.classList.remove('open');
+    overviewAnchor = new Date();
+    renderOverview();
+    el.overviewModal.classList.add('open');
+  });
   el.fileMenuImport.addEventListener('click', () => {
     el.fileMenu.classList.remove('open');
     el.importFileInput.click();
@@ -1890,6 +2065,7 @@
   function openSettings(focusTarget){
     el.setRounding.value = String(settings.roundingMin);
     el.setCsvFormat.value = settings.csvFormat;
+    el.setReportName.value = settings.reportName || '';
     const hrs = targetHours();
     el.setTargetHours.value = hrs > 0 ? String(hrs).replace('.', ',') : '';
     el.setTargetUnit.value = targetUnit();
@@ -1899,7 +2075,7 @@
     updateBalanceFieldsVisibility();
     el.settingsStatus.textContent = '';
     resetArmed = false;
-    el.settingsResetBtn.textContent = 'Alle Daten löschen';
+    setResetLabel('Verlauf löschen');
     el.settingsModal.classList.add('open');
     if(focusTarget){ setTimeout(() => el.setTargetHours.focus(), 50); }
   }
@@ -1912,7 +2088,7 @@
   function closeSettings(){
     resetArmed = false;
     clearTimeout(resetTimeout);
-    el.settingsResetBtn.textContent = 'Alle Daten löschen';
+    setResetLabel('Verlauf löschen');
     el.settingsModal.classList.remove('open');
   }
   el.settingsCloseBtn.addEventListener('click', closeSettings);
@@ -1920,6 +2096,7 @@
   el.settingsSaveBtn.addEventListener('click', () => {
     settings.roundingMin = parseInt(el.setRounding.value, 10) || 0;
     settings.csvFormat = el.setCsvFormat.value === 'decimal' ? 'decimal' : 'hm';
+    settings.reportName = el.setReportName.value.trim().slice(0, 60);
     const hrs = parseHoursInput(el.setTargetHours.value);
     if(Number.isNaN(hrs) || hrs > 1000){
       el.settingsStatus.textContent = 'Sollstunden bitte als Zahl eingeben, z. B. 40 oder 38,5.';
@@ -1945,20 +2122,28 @@
     renderAll();
     closeSettings();
   });
+  function setResetLabel(text){
+    const armed = text !== 'Verlauf löschen';
+    el.settingsResetBtn.classList.toggle('armed', armed);
+    el.settingsResetBtn.innerHTML = (armed ? '' : ICON_TRASH) + '<span>' + text + '</span>';
+  }
+  setResetLabel('Verlauf löschen');
   el.settingsResetBtn.addEventListener('click', () => {
     if(!resetArmed){
       resetArmed = true;
-      el.settingsResetBtn.textContent = 'Wirklich alles löschen?';
+      setResetLabel(currentUser ? 'Verlauf wirklich löschen? (auch in der Cloud)' : 'Verlauf wirklich löschen?');
       clearTimeout(resetTimeout);
       resetTimeout = setTimeout(() => {
         resetArmed = false;
-        el.settingsResetBtn.textContent = 'Alle Daten löschen';
+        setResetLabel('Verlauf löschen');
       }, 4000);
       return;
     }
     entries = [];
     activities = [];
     activeSession = null;
+    settings.balanceSince = dateInputValue(periodStartOf(new Date()));
+    settings.balanceStartMin = 0;
     currentActivity = null;
     stopTicking();
     persistLocalStorage();
@@ -1975,6 +2160,16 @@
     setSyncStatus('Anmelden…');
     try{ await fb_signIn(fbAuth, email, pw); }
     catch(e){ setSyncStatus(translateAuthError(e.code)); }
+  });
+  document.getElementById('syncResetBtn').addEventListener('click', async () => {
+    if(!fbAuth || !fb_sendReset){ setSyncStatus('Cloud-Sync lädt noch — kurz warten und erneut versuchen.'); return; }
+    const email = el.syncEmail.value.trim();
+    if(!email){ setSyncStatus('Bitte oben deine E-Mail eingeben, dann erneut auf „Passwort vergessen?“ tippen.'); el.syncEmail.focus(); return; }
+    setSyncStatus('E-Mail wird gesendet…');
+    try{
+      await fb_sendReset(fbAuth, email);
+      setSyncStatus('Falls ein Konto mit dieser E-Mail existiert, haben wir dir einen Link zum Zurücksetzen geschickt. Schau auch im Spam-Ordner nach.');
+    }catch(e){ setSyncStatus(translateAuthError(e.code)); }
   });
   el.syncSignUpBtn.addEventListener('click', async () => {
     if(!fbAuth){ setSyncStatus('Cloud-Sync lädt noch — kurz warten und erneut versuchen.'); return; }
@@ -2013,7 +2208,7 @@
       currentUser = null;
       updateSyncUI();
       el.syncDeleteAccountBtn.textContent = 'Konto und Cloud-Daten löschen';
-      setSyncStatus('Konto und Cloud-Daten wurden gelöscht.');
+      setSyncStatus('Konto und Cloud-Daten wurden gelöscht. Dein Verlauf auf diesem Gerät bleibt erhalten – du kannst ihn bei Bedarf unten mit „Verlauf löschen“ entfernen.');
     }catch(e){
       el.syncDeleteAccountBtn.textContent = 'Konto und Cloud-Daten löschen';
       if(e && e.code === 'auth/requires-recent-login'){
