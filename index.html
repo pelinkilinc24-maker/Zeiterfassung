@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" content="#16311F">
+<script>
+(function(){
+  var t = 'auto';
+  try { var st = JSON.parse(localStorage.getItem('zf_settings') || '{}'); if(st.theme) t = st.theme; } catch(e) {}
+  var sys = false;
+  try { sys = (window.AndroidBridge && window.AndroidBridge.isSystemDark) ? window.AndroidBridge.isSystemDark() : window.matchMedia('(prefers-color-scheme: dark)').matches; } catch(e) {}
+  if(t === 'dark' || (t === 'auto' && sys)) document.documentElement.setAttribute('data-theme', 'dark');
+})();
+</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -11,7 +20,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zeiterfassung">
-<title>Zeiterfassung</title>
+<title>Dienstzeit</title>
 <style>
   @font-face{
     font-family:'Work Sans'; font-style:normal; font-weight:400 500; font-display:swap;
@@ -37,7 +46,21 @@
     --yellow-500:#F4C41A; --yellow-700:#B98F0E;
     --text:#16241B; --text-muted:#57685C; --danger:#A8442C;
     --border:rgba(22,49,31,0.12); --radius:14px;
+    --ink:#16311F; --btn:#16311F; --on-yellow:#16311F;
+    --tag-u-bg:#FCEFC0; --tag-u-fg:#7A5C00; --tag-k-bg:#F6DDD6;
   }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0F1612; --surface:#18211B; --surface-alt:#232E26;
+    --green-700:#86C99B; --green-500:#5FA877;
+    --yellow-500:#F4C41A; --yellow-700:#F2CE5A;
+    --text:#E6EDE4; --text-muted:#9DAEA2; --danger:#EE8E77;
+    --border:rgba(230,240,232,0.13);
+    --ink:#EAF2E7; --btn:#2D5C3D;
+    --tag-u-bg:rgba(244,196,26,0.18); --tag-u-fg:#F2CE5A; --tag-k-bg:rgba(238,142,119,0.18);
+  }
+  :root[data-theme="dark"] .modal-overlay{ background:rgba(0,0,0,0.6); }
+  :root[data-theme="dark"] .ob-dots span.active{ background:var(--green-700); }
   *{ box-sizing:border-box; }
   html,body{
     margin:0; padding:0; background:var(--bg); color:var(--text);
@@ -51,7 +74,7 @@
   .header-actions{ display:flex; align-items:center; gap:4px; margin-right:-10px; }
   .icon-btn{
     background:none; border:none; padding:0; margin:0; min-width:46px; min-height:46px; border-radius:12px; cursor:pointer;
-    color:var(--green-900); display:flex; align-items:center; justify-content:center;
+    color:var(--ink); display:flex; align-items:center; justify-content:center;
   }
   .icon-btn:active{ background:var(--surface-alt); }
   .icon-btn svg{ width:25px; height:25px; display:block; }
@@ -79,7 +102,7 @@
   .timer{
     font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700;
     font-size:clamp(44px, 13vw, 60px); font-variant-numeric:tabular-nums;
-    letter-spacing:0.01em; color:var(--green-900); line-height:1.1;
+    letter-spacing:0.01em; color:var(--ink); line-height:1.1;
   }
   .timer.active{ color:var(--yellow-700); }
   .timer.paused{ color:var(--text-muted); }
@@ -90,16 +113,16 @@
   .toggle-btn{
     margin-top:22px; width:100%; border:none; border-radius:12px; padding:18px;
     font-family:inherit; font-size:18px; font-weight:600; cursor:pointer;
-    background:var(--green-900); color:var(--yellow-500);
+    background:var(--btn); color:var(--yellow-500);
     transition:transform 0.08s ease, opacity 0.15s ease;
   }
   .toggle-btn:active{ transform:scale(0.98); }
-  .toggle-btn.running{ background:var(--yellow-500); color:var(--green-900); }
+  .toggle-btn.running{ background:var(--yellow-500); color:var(--on-yellow); }
   .toggle-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:3px; }
 
   .pause-btn{
     margin-top:10px; width:100%; border:1px solid var(--green-700); background:transparent;
-    color:var(--green-900); font-family:inherit; font-size:15.5px; font-weight:600;
+    color:var(--ink); font-family:inherit; font-size:15.5px; font-weight:600;
     padding:12px; border-radius:12px; cursor:pointer; display:none;
   }
   .pause-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
@@ -111,7 +134,7 @@
     border-radius:999px; font-family:inherit; font-size:14.5px; font-weight:500; color:var(--text-muted); cursor:pointer; padding:7px 14px;
   }
   .activity-edit-toggle svg{ width:15px; height:15px; display:block; }
-  .activity-edit-toggle.active{ background:var(--green-900); border-color:var(--green-900); color:var(--yellow-500); font-weight:600; }
+  .activity-edit-toggle.active{ background:var(--btn); border-color:var(--ink); color:var(--yellow-500); font-weight:600; }
   .activity-edit-hint{ font-size:13px; line-height:1.45; color:var(--text-muted); margin:6px 2px 0; }
   .activity-chip.removable{ background:var(--surface); border-color:var(--danger); color:var(--danger); }
   .activity-grid{ display:flex; flex-wrap:wrap; gap:8px; }
@@ -121,7 +144,7 @@
     border-radius:999px; cursor:pointer;
     transition:background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   }
-  .activity-chip.selected{ background:var(--yellow-500); border-color:var(--yellow-500); color:var(--green-900); font-weight:600; }
+  .activity-chip.selected{ background:var(--yellow-500); border-color:var(--yellow-500); color:var(--on-yellow); font-weight:600; }
   .activity-chip.new-chip{ background:transparent; border-style:dashed; color:var(--text-muted); }
   .activity-chip:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
 
@@ -132,40 +155,40 @@
   }
   .add-activity-row input:focus{ outline:none; border-color:var(--green-700); }
   .add-activity-row button{ border:none; border-radius:10px; padding:9px 14px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer; }
-  .add-activity-row .confirm{ background:var(--green-900); color:var(--yellow-500); }
+  .add-activity-row .confirm{ background:var(--btn); color:var(--yellow-500); }
   .add-activity-row .cancel{ background:var(--surface-alt); color:var(--text-muted); }
   #onboarding{ position:fixed; inset:0; z-index:60; background:var(--bg); display:none; flex-direction:column; padding:max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); }
   #onboarding.open{ display:flex; }
   .ob-slide{ display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; max-width:420px; margin:0 auto; }
   .ob-slide.active{ display:flex; }
-  .ob-icon{ width:96px; height:96px; border-radius:28px; background:var(--green-900); color:var(--yellow-500); display:flex; align-items:center; justify-content:center; margin-bottom:28px; }
+  .ob-icon{ width:96px; height:96px; border-radius:28px; background:var(--btn); color:var(--yellow-500); display:flex; align-items:center; justify-content:center; margin-bottom:28px; }
   .ob-icon svg{ width:48px; height:48px; }
-  .ob-slide h2{ font-size:24px; font-weight:700; color:var(--green-900); margin:0 0 12px; }
+  .ob-slide h2{ font-size:24px; font-weight:700; color:var(--ink); margin:0 0 12px; }
   .ob-slide p{ font-size:16.5px; line-height:1.55; color:var(--text-muted); margin:0; }
   .ob-dots{ display:flex; justify-content:center; gap:8px; margin:20px 0; }
   .ob-dots span{ width:8px; height:8px; border-radius:50%; background:var(--border); transition:all .2s; }
-  .ob-dots span.active{ width:22px; border-radius:4px; background:var(--green-900); }
+  .ob-dots span.active{ width:22px; border-radius:4px; background:var(--btn); }
   .ob-actions{ display:flex; gap:10px; max-width:420px; width:100%; margin:0 auto; }
   .ob-actions button{ flex:1; border:none; border-radius:12px; padding:14px; font-family:inherit; font-size:16.5px; font-weight:600; cursor:pointer; }
   #obSkip{ background:var(--surface-alt); color:var(--text-muted); }
-  #obNext{ background:var(--green-900); color:var(--yellow-500); }
+  #obNext{ background:var(--btn); color:var(--yellow-500); }
   #syncSignOutBtn{ border:none; border-radius:10px; padding:11px 14px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer; background:var(--surface-alt); color:var(--text); }
 
   .today-row{ display:flex; justify-content:space-between; align-items:baseline; margin:22px 4px 10px; font-size:15.5px; }
   .today-row .label{ color:var(--text-muted); }
   .today-row .label{ min-width:0; }
-  .today-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px; font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .today-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px; font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--ink); }
 
   .period-tabs{ display:flex; gap:6px; margin-bottom:14px; }
   .period-tab{
     flex:1; border:1px solid var(--border); background:var(--surface-alt); color:var(--text);
     font-family:inherit; font-size:14.5px; font-weight:600; padding:9px 6px; border-radius:9px; cursor:pointer;
   }
-  .period-tab.selected{ background:var(--green-900); border-color:var(--green-900); color:var(--yellow-500); }
+  .period-tab.selected{ background:var(--btn); border-color:var(--ink); color:var(--yellow-500); }
 
   .month-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   .month-nav button{
-    background:none; border:none; font-size:20px; color:var(--green-900); cursor:pointer;
+    background:none; border:none; font-size:20px; color:var(--ink); cursor:pointer;
     padding:2px 12px; font-family:inherit; line-height:1;
   }
   .month-nav button:disabled{ color:var(--border); cursor:default; }
@@ -173,12 +196,12 @@
   .month-stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:15.5px; border-top:1px solid var(--border); }
   .month-stat-row:first-of-type{ border-top:none; }
   .month-stat-row .label{ color:var(--text-muted); }
-  .month-stat-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .month-stat-row .value{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--ink); }
 
   .summary-row{ display:flex; justify-content:space-between; align-items:baseline; margin:4px 4px; font-size:15.5px; }
   .summary-row .label{ color:var(--text-muted); }
   .summary-row .label{ min-width:0; }
-  .summary-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px;  font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--green-900); }
+  .summary-row .value{ white-space:nowrap; flex-shrink:0; margin-left:10px;  font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; color:var(--ink); }
   .target-bar{ height:5px; border-radius:999px; background:var(--surface-alt); margin:4px 4px 10px; overflow:hidden; }
   .target-bar > div{ height:100%; width:0; background:var(--green-700); border-radius:inherit; }
   .target-bar.done > div{ background:var(--green-500); }
@@ -197,7 +220,7 @@
   .pw-wrap{ position:relative; }
   .field-row .pw-wrap input{ padding-right:46px; }
   .pw-toggle{ position:absolute; right:4px; top:50%; transform:translateY(-50%); width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:var(--text-muted); cursor:pointer; }
-  .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:15.5px; font-weight:600; color:var(--green-900); }
+  .settings-section{ margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--border); font-size:15.5px; font-weight:600; color:var(--ink); }
   h2 + .settings-section{ margin-top:6px; padding-top:0; border-top:none; }
   .target-fields{ display:flex; gap:8px; }
   .target-fields > *{ flex:1; min-width:0; }
@@ -225,11 +248,16 @@
     display:inline-block; font-family:'Work Sans', sans-serif; font-size:13.5px; font-weight:600;
     padding:3px 11px; border-radius:999px;
   }
-  .entry .absence-tag.urlaub{ background:#FCEFC0; color:#7A5C00; }
-  .entry .absence-tag.krank{ background:#F6DDD6; color:var(--danger); }
+  .entry .absence-tag.urlaub{ background:var(--tag-u-bg); color:var(--tag-u-fg); }
+  .entry .absence-tag.krank{ background:var(--tag-k-bg); color:var(--danger); }
   .entry .absence-tag.frei{ background:var(--surface-alt); color:var(--text-muted); }
   .check-row{ display:flex; align-items:center; gap:8px; font-size:14.5px; color:var(--text); margin:-4px 0 12px; cursor:pointer; }
   .check-row input{ width:18px; height:18px; margin:0; accent-color:var(--green-700); }
+  .entry .entry-note{ display:block; font-size:14px; color:var(--text-muted); margin-top:4px; line-height:1.4; white-space:pre-wrap; word-break:break-word; }
+  .modal textarea.note-field, .note-field{ width:100%; height:auto; line-height:1.4; min-height:64px; resize:vertical; font-family:inherit; font-size:15.5px; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+  .note-field:focus{ outline:none; border-color:var(--green-700); }
+  .session-note{ margin-top:14px; text-align:left; }
+  .session-note .note-field{ min-height:52px; }
   .entry .pause-note{
     display:block; font-family:'Work Sans', sans-serif; font-size:12.5px;
     color:var(--yellow-700); margin-top:3px;
@@ -243,8 +271,8 @@
   .entry-btn svg{ width:19px; height:19px; display:block; }
   .entry-btn:active{ background:var(--surface-alt); }
   .entry-btn.edit{ color:var(--green-700); }
-  .entry-btn.delete.confirm{ width:auto; padding:0 10px; white-space:nowrap; height:34px; border-radius:999px; background:#F6DDD6; color:var(--danger); font-family:inherit; font-size:14.5px; font-weight:600; }
-  .entry .duration{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; font-size:15.5px; color:var(--green-900); }
+  .entry-btn.delete.confirm{ width:auto; padding:0 10px; white-space:nowrap; height:34px; border-radius:999px; background:var(--tag-k-bg); color:var(--danger); font-family:inherit; font-size:14.5px; font-weight:600; }
+  .entry .duration{ font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:700; font-size:15.5px; color:var(--ink); }
   .entry-btn:focus-visible{ outline:2px solid var(--green-700); outline-offset:2px; }
 
   .export-link{
@@ -271,7 +299,7 @@
   }
   .modal-actions{ display:flex; gap:10px; margin-top:12px; }
   .modal-actions button{ flex:1; border:none; border-radius:10px; padding:12px; font-family:inherit; font-size:15.5px; font-weight:600; cursor:pointer; }
-  .modal-actions .primary{ background:var(--green-900); color:var(--yellow-500); }
+  .modal-actions .primary{ background:var(--btn); color:var(--yellow-500); }
   .modal-actions .secondary{ background:var(--surface-alt); color:var(--text); }
   .modal-status{ margin-top:10px; font-size:13.5px; color:var(--text-muted); min-height:16px; }
   .modal-close{ display:block; margin:4px auto 0; background:none; border:none; font-family:inherit; color:var(--text-muted); font-size:14.5px; text-decoration:underline; cursor:pointer; padding:8px; }
@@ -283,6 +311,54 @@
   }
   .danger-btn svg{ width:17px; height:17px; display:block; flex-shrink:0; }
   .danger-btn.armed{ background:var(--danger); border-color:var(--danger); color:#fff; }
+  .long-hint{ margin:10px auto 0; max-width:340px; font-size:14px; line-height:1.45; color:var(--tag-u-fg); background:var(--tag-u-bg); border-radius:12px; padding:8px 12px; }
+  .backup-hint{ background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--yellow-500); border-radius:var(--radius); padding:12px 14px; margin-top:14px; font-size:14.5px; line-height:1.45; color:var(--text); }
+  .backup-hint b{ color:var(--ink); }
+  .backup-hint-actions{ display:flex; gap:8px; margin-top:10px; }
+  .backup-hint-actions button{ flex:1; border:none; border-radius:10px; padding:10px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer; }
+  .backup-hint-actions .go{ background:var(--btn); color:var(--yellow-500); }
+  .backup-hint-actions .later{ background:var(--surface-alt); color:var(--text-muted); }
+  .plan-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-top:14px; }
+  .plan-card-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .plan-card-label{ font-size:13.5px; color:var(--text-muted); margin-bottom:2px; }
+  .plan-card-text{ font-size:15.5px; font-weight:600; color:var(--ink); line-height:1.35; }
+  .plan-card-text.muted{ font-weight:400; color:var(--text-muted); font-size:14.5px; }
+  .plan-card .pill-btn{ margin:0; flex-shrink:0; }
+  .plan-card-actions{ display:flex; flex-direction:column; gap:8px; }
+  .plan-card-actions:not(:empty){ margin-top:12px; }
+  .plan-act{ border:none; border-radius:12px; padding:12px 14px; font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; background:var(--btn); color:var(--yellow-500); text-align:center; }
+  .plan-act.secondary{ background:var(--surface-alt); color:var(--ink); }
+  .plan-modal{ max-height:92vh; }
+  .plan-photo{ margin:4px 0 12px; }
+  .plan-photo-thumb{ display:block; width:100%; max-height:200px; object-fit:cover; object-position:top; border-radius:12px; border:1px solid var(--border); cursor:zoom-in; }
+  .plan-photo-actions{ display:flex; gap:8px; margin-top:8px; }
+  .plan-photo-actions button{ flex:1; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:8px; font-family:inherit; font-size:14px; color:var(--text-muted); cursor:pointer; }
+  .plan-photo .pill-btn{ margin:0; }
+  .plan-photo-add{ display:flex; gap:8px; flex-wrap:wrap; }
+  .plan-photo .field-hint{ margin-top:6px; }
+  .plan-grid-head, .plan-grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+  .plan-grid-head span{ text-align:center; font-size:12.5px; color:var(--text-muted); padding-bottom:4px; }
+  .plan-day{ position:relative; min-height:52px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-family:inherit; cursor:pointer; padding:4px 2px 4px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; color:var(--text); }
+  .plan-day.empty{ visibility:hidden; }
+  .plan-day .num{ font-size:12.5px; color:var(--text-muted); line-height:1; }
+  .plan-day.weekend .num{ color:var(--danger); opacity:.75; }
+  .plan-day.today{ border:2px solid var(--green-700); }
+  .plan-day .code{ margin-top:5px; font-size:13px; font-weight:700; line-height:1.1; padding:3px 4px; border-radius:6px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .plan-summary{ font-size:14px; color:var(--text-muted); margin:10px 2px 14px; line-height:1.45; }
+  .plan-tools-label{ font-size:13.5px; color:var(--text-muted); margin-bottom:8px; }
+  .plan-tools{ display:flex; flex-wrap:wrap; gap:8px; }
+  .plan-tool{ border:2px solid transparent; border-radius:12px; padding:7px 12px; font-family:inherit; cursor:pointer; display:flex; flex-direction:column; align-items:center; min-width:52px; color:var(--text); }
+  .plan-tool b{ font-size:15px; }
+  .plan-tool small{ font-size:11.5px; color:inherit; opacity:.75; margin-top:1px; }
+  .plan-tool.selected{ border-color:var(--ink); box-shadow:0 0 0 2px rgba(22,49,31,0.12); }
+  .plan-tool.removable{ border-color:var(--danger); }
+  .plan-tool.ghost{ background:transparent; border:1px dashed var(--border); color:var(--text-muted); justify-content:center; }
+  .plan-tpl-form{ margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  .photo-viewer{ position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:70; display:none; overflow:auto; }
+  .photo-viewer.open{ display:block; }
+  .photo-viewer img{ display:block; width:100%; height:auto; margin:auto; cursor:zoom-in; }
+  .photo-viewer.zoomed img{ width:250%; max-width:none; cursor:zoom-out; }
+  .photo-viewer-close{ position:fixed; top:max(14px, env(safe-area-inset-top)); right:14px; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,0.9); font-size:22px; cursor:pointer; z-index:71; }
   #loadingOverlay{ position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:15.5px; color:var(--text-muted); z-index:20; }
 </style>
 </head>
@@ -292,7 +368,7 @@
 
 <div id="app" style="display:none;">
   <header>
-    <h1>Zeiterfassung</h1>
+    <h1>Dienstzeit</h1>
     <div class="header-actions">
       <button class="icon-btn" id="headerAddBtn" aria-label="Dienst nachtragen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -323,6 +399,7 @@
   <div class="tracker">
     <div class="timer" id="timerDisplay">00:00:00</div>
     <div class="status" id="statusLabel">Bereit zum Start</div>
+    <div class="long-hint" id="longHint" style="display:none;"></div>
     <button class="toggle-btn" id="toggleBtn">Dienst beginnen</button>
     <button class="pause-btn" id="pauseBtn">Pause</button>
 
@@ -335,8 +412,31 @@
         <button class="cancel" id="cancelActivityBtn">×</button>
       </div>
       <button class="activity-edit-toggle" id="activityEditToggle" style="display:none;">Tätigkeit löschen</button>
+      <div class="session-note" id="sessionNoteWrap" style="display:none;">
+        <label class="activity-label" for="sessionNote">Notiz zu diesem Dienst</label>
+        <textarea id="sessionNote" class="note-field" maxlength="300" rows="2"></textarea>
+      </div>
       <div class="activity-edit-hint" id="activityEditHint" style="display:none;">Tippe auf eine Tätigkeit, um sie zu entfernen. Bereits erfasste Dienste bleiben unverändert.</div>
     </div>
+  </div>
+
+  <div class="backup-hint" id="backupHint" style="display:none;">
+    <b>Zeit für eine Sicherung</b><br><span id="backupHintText"></span>
+    <div class="backup-hint-actions">
+      <button class="later" id="backupLaterBtn">Später</button>
+      <button class="go" id="backupNowBtn">Jetzt sichern</button>
+    </div>
+  </div>
+
+  <div class="plan-card" id="planCard">
+    <div class="plan-card-top">
+      <div style="min-width:0;">
+        <div class="plan-card-label" id="planCardLabel">Dienstplan</div>
+        <div class="plan-card-text muted" id="planCardText">Trag deinen Dienstplan ein, dann siehst du hier deinen nächsten Dienst.</div>
+      </div>
+      <button class="pill-btn" id="planOpenBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 18h2"/></svg><span>Dienstplan</span></button>
+    </div>
+    <div class="plan-card-actions" id="planCardActions"></div>
   </div>
 
   <div class="today-row">
@@ -368,7 +468,7 @@
     <div class="field-row">
       <label for="setTargetHours">Sollstunden</label>
       <div class="target-fields">
-        <input type="text" id="setTargetHours" inputmode="decimal" placeholder="z. B. 40">
+        <input type="text" id="setTargetHours" inputmode="decimal" placeholder="Stunden">
         <select id="setTargetUnit" aria-label="Zeitraum der Sollstunden">
           <option value="week">pro Woche</option>
           <option value="month">pro Monat</option>
@@ -383,14 +483,24 @@
       </div>
       <div class="field-row">
         <label for="setBalanceStart">Bisherige Plus-/Minusstunden</label>
-        <input type="text" id="setBalanceStart" placeholder="z. B. 12 oder -3:30">
-        <div class="field-hint">Dein Stand vor dem Startdatum, z. B. aus der Lohnabrechnung. Leer lassen, um bei 0 zu starten.</div>
+        <input type="text" id="setBalanceStart" placeholder="Std:Min">
+        <div class="field-hint">Dein Stand vor dem Startdatum laut Lohnabrechnung. Leer lassen, um bei 0 zu starten.</div>
       </div>
       <div class="field-row">
         <label for="setAbsenceDay">Stunden pro Urlaubs-/Kranktag</label>
         <input type="text" id="setAbsenceDay" placeholder="automatisch">
         <div class="field-hint">Wird bei Urlaub und Krankheit als Arbeitszeit angerechnet. Leer lassen = Sollstunden pro Woche ÷ 5.</div>
       </div>
+    </div>
+
+    <h3 class="settings-section">Darstellung</h3>
+    <div class="field-row">
+      <label for="setTheme">Design</label>
+      <select id="setTheme">
+        <option value="auto">Automatisch </option>
+        <option value="light">Hell</option>
+        <option value="dark">Dunkel</option>
+      </select>
     </div>
 
     <h3 class="settings-section">Erfassung und Export</h3>
@@ -411,7 +521,7 @@
     </div>
     <div class="field-row">
       <label for="setReportName">Name im PDF-Bericht (optional)</label>
-      <input type="text" id="setReportName" placeholder="z. B. Max Mustermann" maxlength="60">
+      <input type="text" id="setReportName" placeholder="Dein Name" maxlength="60">
     </div>
 
     <h3 class="settings-section">Cloud-Sync</h3>
@@ -451,6 +561,45 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="planModal">
+  <div class="modal plan-modal">
+    <h2>Dienstplan</h2>
+    <div class="month-nav">
+      <button id="planPrevBtn" aria-label="Vorheriger Monat">‹</button>
+      <span class="month-label" id="planMonthLabel"></span>
+      <button id="planNextBtn" aria-label="Nächster Monat">›</button>
+    </div>
+    <div class="plan-photo" id="planPhotoBox"></div>
+    <div class="plan-grid-head"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+    <div class="plan-grid" id="planGrid"></div>
+    <div class="plan-summary" id="planSummary"></div>
+    <div class="plan-tools-label" id="planToolsLabel">Vorlage wählen, dann die Tage antippen:</div>
+    <div class="plan-tools" id="planTools"></div>
+    <div class="plan-tpl-form" id="planTplForm" style="display:none;">
+      <div class="field-row">
+        <label for="planTplCode">Kürzel</label>
+        <input type="text" id="planTplCode" maxlength="6" placeholder="Kürzel">
+      </div>
+      <div class="field-row two-col">
+        <div><label for="planTplStart">Beginn</label><input type="time" id="planTplStart"></div>
+        <div><label for="planTplEnd">Ende</label><input type="time" id="planTplEnd"></div>
+      </div>
+      <div class="field-hint">Ohne Uhrzeiten wird der Tag nur markiert.</div>
+      <div class="field-hint" id="planTplStatus" style="color:var(--danger);"></div>
+      <div class="modal-actions">
+        <button class="secondary" id="planTplCancel">Abbrechen</button>
+        <button class="primary" id="planTplSave">Vorlage speichern</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="primary" id="planCloseBtn" style="flex:1;">Fertig</button>
+    </div>
+  </div>
+</div>
+<div class="photo-viewer" id="planPhotoViewer"><button class="photo-viewer-close" id="planPhotoClose" aria-label="Schließen">×</button><img id="planPhotoBig" alt="Foto vom Dienstplan"></div>
+<input type="file" id="planPhotoInput" accept="image/*" style="display:none;">
+<input type="file" id="planPhotoInputFiles" accept="image/jpeg,image/png,image/webp" style="display:none;">
+
 <div class="modal-overlay" id="overviewModal">
   <div class="modal">
     <h2>Übersicht</h2>
@@ -467,6 +616,7 @@
     <div class="month-stat-row"><span class="label">Arbeitstage</span><span class="value" id="overviewDays">0</span></div>
     <div class="month-stat-row"><span class="label">Gesamt</span><span class="value" id="overviewTotal">0:00 Std.</span></div>
     <div class="month-stat-row"><span class="label">Ø pro Dienst</span><span class="value" id="overviewAvg">–</span></div>
+    <div class="month-stat-row" id="overviewPlanRow" style="display:none;"><span class="label">Geplant (Dienstplan)</span><span class="value" id="overviewPlan">–</span></div>
     <div class="month-stat-row" id="overviewUrlaubRow" style="display:none;"><span class="label">Urlaub</span><span class="value" id="overviewUrlaub">–</span></div>
     <div class="month-stat-row" id="overviewKrankRow" style="display:none;"><span class="label">Krank</span><span class="value" id="overviewKrank">–</span></div>
     <div class="month-stat-row" id="overviewFreiRow" style="display:none;"><span class="label">Frei</span><span class="value" id="overviewFrei">–</span></div>
@@ -504,7 +654,7 @@
       <label class="check-row" id="manualSkipWeekendRow" style="display:none;"><input type="checkbox" id="manualSkipWeekend" checked> Wochenenden auslassen</label>
       <div class="field-row" id="manualHoursRow">
         <label for="manualHours">Stunden pro Tag</label>
-        <input type="text" id="manualHours" placeholder="z. B. 8 oder 7:30">
+        <input type="text" id="manualHours" placeholder="Std:Min">
         <div class="field-hint">Zählt als Arbeitszeit für dein Stundenkonto.</div>
       </div>
       <div class="field-hint" id="manualFreiHint" style="display:none; margin:0 0 12px;">Markiert den Tag nur. Es werden keine Stunden angerechnet.</div>
@@ -538,6 +688,10 @@
         <button class="confirm" id="manualNewActivityConfirm">Übernehmen</button>
       </div>
     </div>
+    </div>
+    <div class="field-row">
+      <label for="manualNote">Notiz (optional)</label>
+      <textarea id="manualNote" class="note-field" maxlength="300" rows="2"></textarea>
     </div>
     <div class="modal-status" id="manualStatus"></div>
     <div class="modal-actions">
@@ -687,6 +841,7 @@
   function setSyncStatus(text){ if(el.syncStatus) el.syncStatus.textContent = text; }
 
   function updateSyncUI(){
+    if(typeof renderBackupHint === 'function') try{ renderBackupHint(); }catch(e){}
     if(!el.syncSignedOut) return;
     if(currentUser){
       el.syncSignedOut.style.display = 'none';
@@ -1074,8 +1229,29 @@
     return total;
   }
 
+  function updateLongHint(){
+    const box = document.getElementById('longHint');
+    if(!box) return;
+    if(!activeSession){ box.style.display = 'none'; return; }
+    const start = new Date(activeSession.startTime);
+    const now = new Date();
+    let msg = '';
+    for(const off of [0, -1]){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + off);
+      const ps = planShiftAt(dayKey(d));
+      if(ps && ps.end && ps.start <= new Date(start.getTime() + 3*3600000) && ps.end > start){
+        if(now - ps.end > 3600000) msg = 'Laut Dienstplan endete dein Dienst um ' + formatTime(ps.end) + ' Uhr. Vergessen zu beenden? Die Zeiten kannst du danach im Verlauf anpassen.';
+        break;
+      }
+    }
+    if(!msg && now - start > 13*3600000) msg = 'Dein Dienst läuft seit über 13 Stunden. Vergessen zu beenden? Die Zeiten kannst du danach im Verlauf anpassen.';
+    box.textContent = msg;
+    box.style.display = msg ? 'block' : 'none';
+  }
+
   function tick(){
     if(!activeSession) return;
+    updateLongHint();
     el.timer.textContent = formatElapsed(currentElapsedMs(activeSession));
     el.todayTotal.textContent = formatDuration(todayTotalMs());
     renderTargetSummary();
@@ -1112,7 +1288,8 @@
         durationMs: applyRounding(Math.max(0, spanMs - pausedTotal)),
         pauseMs: pausedTotal,
         pauses: pauses,
-        activity: activeSession.activity || ''
+        activity: activeSession.activity || '',
+        note: (activeSession.note || '').trim()
       });
       activeSession = null;
       currentActivity = null;
@@ -1283,11 +1460,12 @@
           const times = (entry.pauses || []).map(p => formatTime(new Date(p.from))+'–'+formatTime(new Date(p.to))).join(', ');
           pauseHtml = '<span class="pause-note">Pause '+formatDuration(entry.pauseMs)+(times ? ' ('+times+')' : '')+'</span>';
         }
+        const noteHtml = entry.note ? '<span class="entry-note">'+escapeHtml(entry.note)+'</span>' : '';
         if(isAbsence(entry)){
-          left.innerHTML = '<span class="absence-tag '+entry.type+'">'+ABSENCE_LABELS[entry.type]+'</span>';
+          left.innerHTML = '<span class="absence-tag '+entry.type+'">'+ABSENCE_LABELS[entry.type]+'</span>' + noteHtml;
         } else {
           left.innerHTML = '<span class="range">'+formatTime(start)+'–'+formatTime(end)+'</span>' +
-            (entry.activity ? '<span class="activity-tag">'+escapeHtml(entry.activity)+'</span>' : '') + pauseHtml;
+            (entry.activity ? '<span class="activity-tag">'+escapeHtml(entry.activity)+'</span>' : '') + pauseHtml + noteHtml;
         }
         const right = document.createElement('div');
         right.className = 'right';
@@ -1317,6 +1495,11 @@
   }
 
   function renderTracker(){
+    const nw = document.getElementById('sessionNoteWrap'), nf = document.getElementById('sessionNote');
+    if(nw){
+      nw.style.display = activeSession ? 'block' : 'none';
+      if(activeSession && document.activeElement !== nf) nf.value = activeSession.note || '';
+    }
     if(activeSession){
       el.toggleBtn.textContent = 'Dienst beenden';
       el.toggleBtn.classList.add('running');
@@ -1341,12 +1524,19 @@
       el.timer.classList.remove('paused');
       el.status.textContent = 'Bereit zum Start';
       el.timer.textContent = '00:00:00';
+      updateLongHint();
     }
     el.todayTotal.textContent = formatDuration(todayTotalMs());
     renderTargetSummary();
   }
 
-  function renderAll(){ renderTracker(); renderActivityGrid(); renderHistory(); }
+  document.getElementById('sessionNote').addEventListener('input', (ev) => {
+    if(!activeSession) return;
+    activeSession.note = ev.target.value.slice(0, 300);
+    persistLocalStorage();
+  });
+
+  function renderAll(){ applyTheme(); renderTracker(); renderActivityGrid(); renderHistory(); renderPlanCard(); renderBackupHint(); }
 
   let overviewPeriod = 'month';
   let overviewAnchor = new Date();
@@ -1388,6 +1578,13 @@
     el.overviewDays.textContent = String(days.size);
     el.overviewTotal.textContent = formatDuration(totalMs);
     el.overviewAvg.textContent = workEntries.length ? formatDuration(totalMs / workEntries.length) : '–';
+    let plannedMs = 0;
+    for(let d = new Date(range.start); d < range.end; d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)){
+      const ps = planShiftAt(dayKey(d));
+      if(ps && ps.ms) plannedMs += ps.ms;
+    }
+    document.getElementById('overviewPlanRow').style.display = plannedMs > 0 ? 'flex' : 'none';
+    document.getElementById('overviewPlan').textContent = formatDuration(plannedMs);
     let creditMs = 0;
     ['urlaub','krank','frei'].forEach(t => {
       const list = periodEntries.filter(e => e.type === t);
@@ -1444,11 +1641,427 @@
   el.overviewNextBtn.addEventListener('click', () => { if(el.overviewNextBtn.disabled) return; shiftAnchor(1); renderOverview(); });
   el.overviewCloseBtn.addEventListener('click', () => el.overviewModal.classList.remove('open'));
   el.overviewModal.addEventListener('click', (ev) => { if(ev.target === el.overviewModal) el.overviewModal.classList.remove('open'); });
+
+
+
+  // ================= Backup-Hinweis =================
+  function renderBackupHint(){
+    const box = document.getElementById('backupHint');
+    if(!box) return;
+    const now = Date.now(), DAY = 86400000;
+    let show = false, text = '';
+    if(!currentUser && entries.length >= 5){
+      const oldest = entries.reduce((m,e) => Math.min(m, new Date(e.start).getTime()), now);
+      const last = settings.lastExportAt ? new Date(settings.lastExportAt).getTime() : 0;
+      const snooze = settings.backupSnoozeUntil ? new Date(settings.backupSnoozeUntil).getTime() : 0;
+      if(now > snooze && now - oldest > 14*DAY && now - last > 30*DAY){
+        show = true;
+        text = last ? 'Deine letzte Sicherung ist ' + Math.floor((now-last)/DAY) + ' Tage her. ' : 'Du hast deine Daten noch nie gesichert. ';
+        text += 'Ohne Cloud-Sync sind deine Zeiten nur auf diesem Handy gespeichert.';
+      }
+    }
+    box.style.display = show ? 'block' : 'none';
+    if(show) document.getElementById('backupHintText').textContent = text;
+  }
+  function markExported(){ settings.lastExportAt = new Date().toISOString(); persistLocalStorage(); renderBackupHint(); }
+  document.getElementById('backupNowBtn').addEventListener('click', () => openExportModal());
+  document.getElementById('backupLaterBtn').addEventListener('click', () => {
+    settings.backupSnoozeUntil = new Date(Date.now() + 7*86400000).toISOString();
+    persistLocalStorage(); renderBackupHint();
+  });
+
+  // ================= Dunkelmodus =================
+  function systemDark(){
+    try{
+      if(window.AndroidBridge && typeof window.AndroidBridge.isSystemDark === 'function') return !!window.AndroidBridge.isSystemDark();
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }catch(e){ return false; }
+  }
+  function applyTheme(){
+    const t = settings.theme || 'auto';
+    const dark = t === 'dark' || (t === 'auto' && systemDark());
+    if(dark) document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+    try{ if(window.AndroidBridge && typeof window.AndroidBridge.setDarkMode === 'function') window.AndroidBridge.setDarkMode(dark); }catch(e){}
+  }
+  try{ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if((settings.theme || 'auto') === 'auto') applyTheme(); }); }catch(e){}
+
+  // ================= Dienstplan =================
+  const PLAN_SPECIAL = { U: { code:'U', label:'Urlaub', bg:'#FCEFC0', fg:'#7A5C00' }, K: { code:'K', label:'Krank', bg:'#F6DDD6', fg:'#A8442C' }, F: { code:'F', label:'Frei', bg:'#EAF0DC', fg:'#57685C' } };
+  const PLAN_COLORS = [['#DCEBD3','#16311F'],['#D9E6F5','#1F3A5C'],['#EFE0F2','#4A2357'],['#FBE3CC','#6B3A0C'],['#D6EFEA','#14463D'],['#ECE7D6','#4A4128'],['#F7DCE3','#6A1F33'],['#E2E3F7','#2E3070']];
+  let planMonth = new Date(); planMonth = new Date(planMonth.getFullYear(), planMonth.getMonth(), 1);
+  let planTool = null;
+  let planEditTemplates = false;
+
+  function planTemplates(){ if(!Array.isArray(settings.shiftTemplates)) settings.shiftTemplates = []; return settings.shiftTemplates; }
+  function planData(){ if(!settings.plan || typeof settings.plan !== 'object') settings.plan = {}; return settings.plan; }
+  function tplColor(t){ const i = Math.max(0, planTemplates().indexOf(t)); return PLAN_COLORS[i % PLAN_COLORS.length]; }
+  function planShiftAt(key){
+    const v = (settings.plan || {})[key];
+    if(!v) return null;
+    if(PLAN_SPECIAL[v]) return { special:v, code:v, label:PLAN_SPECIAL[v].label };
+    const t = (settings.shiftTemplates || []).find(x => x.id === v);
+    if(!t) return null;
+    const r = { code:t.code, tpl:t };
+    if(t.start && t.end){
+      const [y,m,d] = key.split('-').map(Number);
+      const [sh,sm] = t.start.split(':').map(Number);
+      const [eh,em] = t.end.split(':').map(Number);
+      const st = new Date(y, m-1, d, sh, sm);
+      let en = new Date(y, m-1, d, eh, em);
+      if(en <= st) en = new Date(y, m-1, d+1, eh, em);
+      r.start = st; r.end = en; r.ms = en - st;
+    }
+    return r;
+  }
+  function shiftRecorded(ps){
+    if(entries.some(e => !isAbsence(e) && new Date(e.start) < ps.end && new Date(e.end) > ps.start)) return true;
+    if(activeSession && new Date(activeSession.startTime) < ps.end) {
+      const st = new Date(activeSession.startTime);
+      if(st > new Date(ps.start.getTime() - 4*3600000)) return true;
+    }
+    return false;
+  }
+  function shortDay(d){ return d.toLocaleDateString('de-DE', { weekday:'short', day:'numeric', month:'numeric' }); }
+  function shiftText(ps){ return ps.code + (ps.start ? ' · ' + formatTime(ps.start) + '–' + formatTime(ps.end) : ''); }
+
+  function renderPlanCard(){
+    const label = document.getElementById('planCardLabel');
+    const text = document.getElementById('planCardText');
+    const actions = document.getElementById('planCardActions');
+    if(!label) return;
+    actions.innerHTML = '';
+    const hasPlan = Object.keys(planData()).length > 0;
+    if(!hasPlan){
+      label.textContent = 'Dienstplan';
+      text.textContent = 'Trag deinen Dienstplan ein, dann siehst du hier deinen nächsten Dienst.';
+      text.classList.add('muted');
+      return;
+    }
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let next = null, nextDay = null;
+    for(let off = -1; off <= 62 && !next; off++){
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate()+off);
+      const ps = planShiftAt(dayKey(d));
+      if(ps && ps.end && ps.end > now){ next = ps; nextDay = d; }
+    }
+    const todayPs = planShiftAt(dayKey(today));
+    text.classList.remove('muted');
+    if(todayPs && todayPs.special){
+      label.textContent = 'Heute laut Dienstplan';
+      text.textContent = todayPs.label + (next ? ' · Nächster Dienst: ' + shortDay(nextDay) + ', ' + shiftText(next) : '');
+    } else if(next){
+      const running = next.start <= now;
+      label.textContent = running ? 'Aktueller Dienst laut Plan' : 'Nächster Dienst';
+      text.textContent = shortDay(nextDay) + ' · ' + shiftText(next);
+    } else {
+      label.textContent = 'Dienstplan';
+      text.textContent = 'Keine weiteren Dienste eingetragen.';
+      text.classList.add('muted');
+    }
+    if(!activeSession && next && now >= new Date(next.start.getTime() - 2*3600000) && !shiftRecorded(next)){
+      const b = document.createElement('button');
+      b.className = 'plan-act';
+      b.textContent = next.code + ' jetzt starten';
+      b.addEventListener('click', () => {
+        currentActivity = addActivityIfNew(next.code);
+        toggleTracking();
+      });
+      actions.appendChild(b);
+    }
+    let past = null, pastDay = null;
+    for(let off = 0; off >= -3 && !past; off--){
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate()+off);
+      const ps = planShiftAt(dayKey(d));
+      if(ps && ps.end && ps.end <= now && !shiftRecorded(ps)){ past = ps; pastDay = d; }
+    }
+    if(past){
+      const b = document.createElement('button');
+      b.className = 'plan-act secondary';
+      b.textContent = past.code + ' vom ' + shortDay(pastDay) + ' wie geplant eintragen';
+      b.addEventListener('click', () => {
+        entries.unshift({
+          id: 'e' + Date.now(),
+          start: past.start.toISOString(),
+          end: past.end.toISOString(),
+          durationMs: applyRounding(past.ms),
+          pauseMs: 0,
+          pauses: [],
+          activity: addActivityIfNew(past.code)
+        });
+        persistLocalStorage();
+        renderAll();
+      });
+      actions.appendChild(b);
+    }
+  }
+  setInterval(renderPlanCard, 60000);
+
+  function renderPlanModal(){
+    document.getElementById('planMonthLabel').textContent = planMonth.toLocaleDateString('de-DE', { month:'long', year:'numeric' });
+    const grid = document.getElementById('planGrid');
+    grid.innerHTML = '';
+    const y = planMonth.getFullYear(), m = planMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const lead = (first.getDay() + 6) % 7;
+    for(let i = 0; i < lead; i++){ const e = document.createElement('div'); e.className = 'plan-day empty'; grid.appendChild(e); }
+    const daysIn = new Date(y, m+1, 0).getDate();
+    const todayKey = dayKey(new Date());
+    let shifts = 0, ms = 0; const counts = { U:0, K:0, F:0 }; let marks = 0;
+    for(let d = 1; d <= daysIn; d++){
+      const date = new Date(y, m, d);
+      const key = dayKey(date);
+      const ps = planShiftAt(key);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'plan-day' + (key === todayKey ? ' today' : '') + ((date.getDay() === 0 || date.getDay() === 6) ? ' weekend' : '');
+      b.innerHTML = '<span class="num">' + d + '</span>';
+      if(ps){
+        const c = document.createElement('span');
+        c.className = 'code';
+        c.textContent = ps.code;
+        let col;
+        if(ps.special){ col = [PLAN_SPECIAL[ps.special].bg, PLAN_SPECIAL[ps.special].fg]; counts[ps.special]++; }
+        else { col = tplColor(ps.tpl); if(ps.ms){ shifts++; ms += ps.ms; } else { marks++; } }
+        c.style.background = col[0]; c.style.color = col[1];
+        b.appendChild(c);
+      }
+      b.addEventListener('click', () => planTapDay(key));
+      grid.appendChild(b);
+    }
+    const parts = [];
+    if(shifts) parts.push(shifts + (shifts === 1 ? ' Dienst' : ' Dienste') + ' · ' + formatDuration(ms) + ' geplant');
+    if(counts.U) parts.push(counts.U + ' × Urlaub');
+    if(counts.K) parts.push(counts.K + ' × Krank');
+    if(counts.F) parts.push(counts.F + ' × Frei');
+    if(marks) parts.push(marks + ' Markierung' + (marks === 1 ? '' : 'en'));
+    document.getElementById('planSummary').textContent = parts.length ? parts.join(' · ') : 'Noch nichts eingetragen für diesen Monat.';
+    renderPlanTools();
+    renderPlanPhoto();
+  }
+
+  function renderPlanTools(){
+    const box = document.getElementById('planTools');
+    box.innerHTML = '';
+    const tpls = planTemplates();
+    document.getElementById('planToolsLabel').textContent = planEditTemplates ? 'Tippe auf eine Vorlage, um sie zu löschen:' : (tpls.length ? 'Vorlage wählen, dann die Tage antippen:' : 'Leg zuerst über „+ Vorlage“ deine Dienste an:');
+    tpls.forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      const col = tplColor(t);
+      b.className = 'plan-tool' + (planTool === t.id && !planEditTemplates ? ' selected' : '') + (planEditTemplates ? ' removable' : '');
+      b.style.background = col[0]; b.style.color = col[1];
+      b.innerHTML = '<b></b><small></small>';
+      b.querySelector('b').textContent = t.code;
+      b.querySelector('small').textContent = (t.start && t.end) ? t.start + '–' + t.end : 'Markierung';
+      b.addEventListener('click', () => {
+        if(planEditTemplates){
+          const used = Object.keys(planData()).filter(k => planData()[k] === t.id);
+          settings.shiftTemplates = tpls.filter(x => x.id !== t.id);
+          used.forEach(k => { delete settings.plan[k]; });
+          if(planTool === t.id) planTool = null;
+          if(!settings.shiftTemplates.length) planEditTemplates = false;
+          persistLocalStorage(); renderPlanModal(); renderPlanCard();
+          return;
+        }
+        planTool = (planTool === t.id) ? null : t.id;
+        renderPlanTools();
+      });
+      box.appendChild(b);
+    });
+    if(!planEditTemplates){
+      Object.values(PLAN_SPECIAL).forEach(sp => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'plan-tool' + (planTool === sp.code ? ' selected' : '');
+        b.style.background = sp.bg; b.style.color = sp.fg;
+        b.innerHTML = '<b>' + sp.code + '</b><small>' + sp.label + '</small>';
+        b.addEventListener('click', () => { planTool = (planTool === sp.code) ? null : sp.code; renderPlanTools(); });
+        box.appendChild(b);
+      });
+      const clr = document.createElement('button');
+      clr.type = 'button';
+      clr.className = 'plan-tool ghost' + (planTool === 'CLEAR' ? ' selected' : '');
+      clr.innerHTML = '<b>–</b><small>Leeren</small>';
+      clr.addEventListener('click', () => { planTool = (planTool === 'CLEAR') ? null : 'CLEAR'; renderPlanTools(); });
+      box.appendChild(clr);
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'plan-tool ghost';
+      add.innerHTML = '<b>+</b><small>Vorlage</small>';
+      add.addEventListener('click', openTplForm);
+      box.appendChild(add);
+    }
+    if(tpls.length){
+      const ed = document.createElement('button');
+      ed.type = 'button';
+      ed.className = 'plan-tool ghost';
+      ed.innerHTML = planEditTemplates ? '<b>✓</b><small>Fertig</small>' : '<b>✎</b><small>Bearbeiten</small>';
+      ed.addEventListener('click', () => { planEditTemplates = !planEditTemplates; renderPlanTools(); });
+      box.appendChild(ed);
+    }
+  }
+
+  function planTapDay(key){
+    const status = document.getElementById('planToolsLabel');
+    if(!planTool){
+      status.textContent = 'Wähle zuerst unten eine Vorlage aus, dann tippe die Tage an.';
+      status.style.color = 'var(--danger)';
+      setTimeout(() => { status.style.color = ''; renderPlanTools(); }, 2500);
+      return;
+    }
+    const plan = planData();
+    if(planTool === 'CLEAR' || plan[key] === planTool) delete plan[key];
+    else plan[key] = planTool;
+    persistLocalStorage();
+    renderPlanModal();
+    renderPlanCard();
+  }
+
+  function openTplForm(){
+    document.getElementById('planTplForm').style.display = 'block';
+    document.getElementById('planTplCode').value = '';
+    document.getElementById('planTplStart').value = '';
+    document.getElementById('planTplEnd').value = '';
+    document.getElementById('planTplStatus').textContent = '';
+    document.getElementById('planTplCode').focus();
+  }
+  document.getElementById('planTplCancel').addEventListener('click', () => { document.getElementById('planTplForm').style.display = 'none'; });
+  document.getElementById('planTplSave').addEventListener('click', () => {
+    const code = document.getElementById('planTplCode').value.trim().toUpperCase();
+    const start = document.getElementById('planTplStart').value;
+    const end = document.getElementById('planTplEnd').value;
+    const st = document.getElementById('planTplStatus');
+    if(!code){ st.textContent = 'Bitte ein Kürzel eingeben.'; return; }
+    if(PLAN_SPECIAL[code]){ st.textContent = '„' + code + '“ ist schon für ' + PLAN_SPECIAL[code].label + ' vergeben.'; return; }
+    if((start && !end) || (!start && end)){ st.textContent = 'Bitte Beginn und Ende angeben – oder beide leer lassen.'; return; }
+    if(start && start === end){ st.textContent = 'Beginn und Ende dürfen nicht gleich sein.'; return; }
+    if(planTemplates().some(t => t.code === code)){ st.textContent = 'Eine Vorlage „' + code + '“ gibt es schon.'; return; }
+    const t = { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2,8), code, start: start || '', end: end || '' };
+    planTemplates().push(t);
+    planTool = t.id;
+    persistLocalStorage();
+    document.getElementById('planTplForm').style.display = 'none';
+    renderPlanModal();
+  });
+
+  // Foto vom Papier-Dienstplan (bleibt nur auf diesem Gerät)
+  function photoDb(){
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('zf_photos', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('plan');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function photoOp(mode, key, val){
+    try{
+      const db = await photoDb();
+      return await new Promise((res) => {
+        const tx = db.transaction('plan', mode === 'get' ? 'readonly' : 'readwrite');
+        const store = tx.objectStore('plan');
+        const rq = mode === 'get' ? store.get(key) : (mode === 'put' ? store.put(val, key) : store.delete(key));
+        rq.onsuccess = () => res(mode === 'get' ? (rq.result || null) : true);
+        rq.onerror = () => res(null);
+      });
+    }catch(e){ return null; }
+  }
+  function planMonthKey(){ return planMonth.getFullYear() + '-' + String(planMonth.getMonth()+1).padStart(2,'0'); }
+  async function renderPlanPhoto(){
+    const box = document.getElementById('planPhotoBox');
+    const key = planMonthKey();
+    const data = await photoOp('get', key);
+    if(key !== planMonthKey()) return;
+    box.innerHTML = '';
+    if(data){
+      const img = document.createElement('img');
+      img.className = 'plan-photo-thumb';
+      img.src = data;
+      img.alt = 'Foto vom Dienstplan';
+      img.addEventListener('click', () => {
+        document.getElementById('planPhotoBig').src = data;
+        const v = document.getElementById('planPhotoViewer');
+        v.classList.remove('zoomed');
+        v.classList.add('open');
+      });
+      const acts = document.createElement('div');
+      acts.className = 'plan-photo-actions';
+      const ch = document.createElement('button'); ch.type = 'button'; ch.textContent = 'Aus Galerie';
+      ch.addEventListener('click', () => document.getElementById('planPhotoInput').click());
+      const cf = document.createElement('button'); cf.type = 'button'; cf.textContent = 'Aus Dateien';
+      cf.addEventListener('click', () => document.getElementById('planPhotoInputFiles').click());
+      const rm = document.createElement('button'); rm.type = 'button'; rm.textContent = 'Entfernen';
+      rm.addEventListener('click', async () => { await photoOp('delete', key); renderPlanPhoto(); });
+      acts.appendChild(ch); acts.appendChild(cf); acts.appendChild(rm);
+      box.appendChild(img); box.appendChild(acts);
+    } else {
+      const row = document.createElement('div');
+      row.className = 'plan-photo-add';
+      const mk = (label, icon, inputId) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pill-btn';
+        b.innerHTML = icon + '<span>' + label + '</span>';
+        b.addEventListener('click', () => document.getElementById(inputId).click());
+        return b;
+      };
+      row.appendChild(mk('Aus Galerie', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>', 'planPhotoInput'));
+      row.appendChild(mk('Aus Dateien', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>', 'planPhotoInputFiles'));
+      const h = document.createElement('div');
+      h.className = 'field-hint';
+      h.textContent = 'Optional: Bild deines Dienstplans hinzufügen (Foto oder Screenshot). Es bleibt nur auf diesem Gerät.';
+      box.appendChild(row); box.appendChild(h);
+    }
+  }
+  function handlePlanPhoto(ev){
+    const file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if(!file) return;
+    const key = planMonthKey();
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = async () => {
+        const max = 1800;
+        const sc = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        await photoOp('put', key, c.toDataURL('image/jpeg', 0.8));
+        renderPlanPhoto();
+      };
+      img.onerror = () => { alert('Dieses Bild konnte nicht geladen werden. Bitte ein JPG- oder PNG-Bild wählen.'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  document.getElementById('planPhotoInput').addEventListener('change', handlePlanPhoto);
+  document.getElementById('planPhotoInputFiles').addEventListener('change', handlePlanPhoto);
+  document.getElementById('planPhotoViewer').addEventListener('click', (ev) => {
+    if(ev.target.id === 'planPhotoClose'){ document.getElementById('planPhotoViewer').classList.remove('open'); return; }
+    if(ev.target.tagName === 'IMG') document.getElementById('planPhotoViewer').classList.toggle('zoomed');
+  });
+
+  function openPlanModal(){
+    const now = new Date();
+    planMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    planEditTemplates = false;
+    document.getElementById('planTplForm').style.display = 'none';
+    renderPlanModal();
+    document.getElementById('planModal').classList.add('open');
+  }
+  document.getElementById('planOpenBtn').addEventListener('click', openPlanModal);
+  document.getElementById('planCloseBtn').addEventListener('click', () => document.getElementById('planModal').classList.remove('open'));
+  document.getElementById('planPrevBtn').addEventListener('click', () => { planMonth = new Date(planMonth.getFullYear(), planMonth.getMonth()-1, 1); renderPlanModal(); });
+  document.getElementById('planNextBtn').addEventListener('click', () => { planMonth = new Date(planMonth.getFullYear(), planMonth.getMonth()+1, 1); renderPlanModal(); });
+
   // --- PDF-Bericht ---
   function buildReportHtml(){
     const range = getPeriodRange(overviewPeriod, overviewAnchor);
     const list = entriesInRange(range).slice().sort((a,b) => new Date(a.start) - new Date(b.start));
     const esc = (t) => escapeHtml(String(t == null ? '' : t));
+    const pdfNote = (e) => e.note ? '<div class="note">'+esc(e.note)+'</div>' : '';
     const summary = [];
     document.querySelectorAll('#overviewModal .month-stat-row').forEach(row => {
       if(row.style.display === 'none') return;
@@ -1459,9 +2072,9 @@
       const st = new Date(e.start), en = new Date(e.end);
       const date = st.toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric' });
       if(isAbsence(e)){
-        return '<tr class="abs"><td>'+esc(date)+'</td><td>–</td><td>–</td><td>–</td><td class="r">'+(e.type === 'frei' ? '–' : esc(formatShort(e.durationMs)))+'</td><td>'+esc(ABSENCE_LABELS[e.type])+'</td></tr>';
+        return '<tr class="abs"><td>'+esc(date)+'</td><td>–</td><td>–</td><td>–</td><td class="r">'+(e.type === 'frei' ? '–' : esc(formatShort(e.durationMs)))+'</td><td>'+esc(ABSENCE_LABELS[e.type])+pdfNote(e)+'</td></tr>';
       }
-      return '<tr><td>'+esc(date)+'</td><td>'+esc(formatTime(st))+'</td><td>'+esc(formatTime(en))+'</td><td>'+(e.pauseMs ? esc(formatShort(e.pauseMs)) : '–')+'</td><td class="r">'+esc(formatShort(e.durationMs))+'</td><td>'+esc(e.activity || 'Dienst')+'</td></tr>';
+      return '<tr><td>'+esc(date)+'</td><td>'+esc(formatTime(st))+'</td><td>'+esc(formatTime(en))+'</td><td>'+(e.pauseMs ? esc(formatShort(e.pauseMs)) : '–')+'</td><td class="r">'+esc(formatShort(e.durationMs))+'</td><td>'+esc(e.activity || 'Dienst')+pdfNote(e)+'</td></tr>';
     }).join('');
     const created = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
     const name = (settings.reportName || '').trim();
@@ -1478,6 +2091,7 @@
       + '.r{ text-align:right; }'
       + '.sum td{ font-size:10.5pt; } .sum{ width:60%; }'
       + 'tr.abs td{ color:#57685C; font-style:italic; }'
+      + '.note{ font-size:8.5pt; color:#57685C; font-style:normal; margin-top:2pt; white-space:pre-wrap; }'
       + 'thead{ display:table-header-group; } tr{ page-break-inside:avoid; }'
       + '.foot{ margin-top:18pt; font-size:8pt; color:#8A968D; }'
       + '</style></head><body>'
@@ -1536,16 +2150,17 @@
     const fmt = (ms) => settings.csvFormat === 'decimal'
       ? (ms/3600000).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2})
       : formatDurationHM(ms);
-    const header = 'Datum;Start;Ende;Dauer;Pause;Anwesend;Tätigkeit;Art';
+    const header = 'Datum;Start;Ende;Dauer;Pause;Anwesend;Tätigkeit;Art;Notiz';
+    const noteCsv = (e) => (e.note || '').replace(/;/g, ',').replace(/\r?\n/g, ' ');
     const rows = source.slice().sort((a,b) => new Date(a.start) - new Date(b.start)).map(e => {
       const start = new Date(e.start), end = new Date(e.end);
       const dateStr = start.toLocaleDateString('de-DE');
       if(isAbsence(e)){
-        return [dateStr, '', '', fmt(e.durationMs), '', '', '', ABSENCE_LABELS[e.type]].join(';');
+        return [dateStr, '', '', fmt(e.durationMs), '', '', '', ABSENCE_LABELS[e.type], noteCsv(e)].join(';');
       }
       const pauseMs = e.pauseMs || 0;
       const activity = (e.activity || '').replace(/;/g, ',').replace(/\n/g,' ');
-      return [dateStr, formatTime(start), formatTime(end), fmt(e.durationMs), fmt(pauseMs), fmt(end - start), activity, 'Dienst'].join(';');
+      return [dateStr, formatTime(start), formatTime(end), fmt(e.durationMs), fmt(pauseMs), fmt(end - start), activity, 'Dienst', noteCsv(e)].join(';');
     });
     return [header].concat(rows).join('\n');
   }
@@ -1598,6 +2213,7 @@
   el.downloadBtn.addEventListener('click', () => {
     try{
       triggerDownload(exportFilename, 'text/csv;charset=utf-8;', '\uFEFF' + el.exportTextarea.value);
+      markExported();
       el.exportStatus.textContent = window.AndroidBridge ? 'Speicherort auswählen…' : 'Download gestartet — falls nichts passiert, „Teilen“ oder „Kopieren“ nutzen.';
     }catch(e){
       el.exportStatus.textContent = 'Download nicht möglich — bitte „Teilen“ oder „Kopieren“ nutzen.';
@@ -1606,7 +2222,8 @@
   el.shareBtn.addEventListener('click', async () => {
     try{
       const file = new File(['\uFEFF' + el.exportTextarea.value], exportFilename, {type:'text/csv'});
-      await navigator.share({ files:[file], title:'Zeiterfassung' });
+      await navigator.share({ files:[file], title:'Dienstzeit' });
+      markExported();
       el.exportStatus.textContent = 'Geteilt.';
     }catch(e){
       if(e && e.name === 'AbortError'){ el.exportStatus.textContent = ''; }
@@ -1718,7 +2335,8 @@
       durationMs: minutes * 60000,
       pauseMs: 0,
       pauses: [],
-      activity: ''
+      activity: '',
+      note: document.getElementById('manualNote').value.trim().slice(0, 300)
     });
     if(editingEntryId){
       const idx = entries.findIndex(e => e.id === editingEntryId);
@@ -1760,6 +2378,7 @@
     el.manualEnd.value = '';
     el.manualPauseStart.value = '';
     el.manualPauseEnd.value = '';
+    document.getElementById('manualNote').value = '';
     populateManualActivitySelect();
     el.manualAddActivityRow.style.display = 'none';
     setManualType('dienst');
@@ -1769,6 +2388,7 @@
     editingEntryId = entry.id;
     el.manualAddBtn.textContent = 'Speichern';
     el.manualDateTo.value = '';
+    document.getElementById('manualNote').value = entry.note || '';
     if(isAbsence(entry)){
       const d = new Date(entry.start);
       el.manualDate.value = dayKey(d);
@@ -1833,7 +2453,7 @@
         return;
       }
       const start = new Date(dateStr+'T'+startStr+':00');
-      activeSession = { startTime: start.toISOString(), activity: activityValue || null, pausedAt: null, pauses: [] };
+      activeSession = { startTime: start.toISOString(), activity: activityValue || null, pausedAt: null, pauses: [], note: document.getElementById('manualNote').value.trim().slice(0, 300) };
       currentActivity = activityValue || null;
       startTicking();
       persistLocalStorage();
@@ -1897,7 +2517,8 @@
           durationMs,
           pauseMs,
           pauses,
-          activity: activityValue || ''
+          activity: activityValue || '',
+          note: document.getElementById('manualNote').value.trim().slice(0, 300)
         };
       }
       editingEntryId = null;
@@ -1909,7 +2530,8 @@
         durationMs,
         pauseMs,
         pauses,
-        activity: activityValue || ''
+        activity: activityValue || '',
+        note: document.getElementById('manualNote').value.trim().slice(0, 300)
       });
     }
     persistLocalStorage();
@@ -1927,6 +2549,7 @@
     let activityIdx = headerCells.findIndex(h => h.startsWith('tätigkeit') || h.startsWith('taetigkeit') || h.startsWith('t\u00c3'));
     let pauseIdx = headerCells.findIndex(h => h.startsWith('pause'));
     const artIdx = headerCells.findIndex(h => h === 'art');
+    const noteIdx = headerCells.findIndex(h => h === 'notiz');
     let dauerIdx = headerCells.findIndex(h => h.startsWith('dauer'));
     if(dauerIdx === -1) dauerIdx = 3;
     if(activityIdx === -1) activityIdx = 4;
@@ -1964,7 +2587,8 @@
           durationMs: art === 'frei' ? 0 : parseDurationToMs(parts[dauerIdx]),
           pauseMs: 0,
           pauses: [],
-          activity: ''
+          activity: '',
+          note: noteIdx !== -1 ? (parts[noteIdx] || '').trim() : ''
         });
         return;
       }
@@ -1982,7 +2606,8 @@
         durationMs: Math.max(0, (end.getTime() - start.getTime()) - pauseMs),
         pauseMs: pauseMs,
         pauses: [],
-        activity: activityStr.trim()
+        activity: activityStr.trim(),
+        note: noteIdx !== -1 ? (parts[noteIdx] || '').trim() : ''
       });
     });
     return parsed;
@@ -2066,6 +2691,7 @@
     el.setRounding.value = String(settings.roundingMin);
     el.setCsvFormat.value = settings.csvFormat;
     el.setReportName.value = settings.reportName || '';
+    document.getElementById('setTheme').value = settings.theme || 'auto';
     const hrs = targetHours();
     el.setTargetHours.value = hrs > 0 ? String(hrs).replace('.', ',') : '';
     el.setTargetUnit.value = targetUnit();
@@ -2097,6 +2723,8 @@
     settings.roundingMin = parseInt(el.setRounding.value, 10) || 0;
     settings.csvFormat = el.setCsvFormat.value === 'decimal' ? 'decimal' : 'hm';
     settings.reportName = el.setReportName.value.trim().slice(0, 60);
+    settings.theme = document.getElementById('setTheme').value;
+    applyTheme();
     const hrs = parseHoursInput(el.setTargetHours.value);
     if(Number.isNaN(hrs) || hrs > 1000){
       el.settingsStatus.textContent = 'Sollstunden bitte als Zahl eingeben, z. B. 40 oder 38,5.';
